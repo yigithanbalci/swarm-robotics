@@ -147,7 +147,6 @@ def hog_human_detection(self, img):
 		if(h != 0):
 			foundCounter = foundCounter + 1
 			
-	foundCounter = 0
 	if(foundCounter != 0):
 		send_help(self)
 	draw_detections(img,found)
@@ -161,8 +160,8 @@ def send_help(self):
 		y = self.pose.y
 		z = self.pose.z
 	try:
-		fo = open("/home/yigithan/catkin_ws/src/quadro_demo/communication/comm.txt", "w")
-		filestring = "%.10f %.10f %.10f" % ( (x), (y), (z))
+		fo = open("/home/yigithan/catkin_ws/src/quadro_demo/communication/comm.txt", "a")
+		filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
 		fo.write(filestring)
 		fo.close()
 	except:

@@ -47,7 +47,7 @@
   </joint>
   <link name="${side}_wheel">
     <inertial>
-      <mass value="0.5"/>
+      <mass value="3.0"/>
       <origin xyz="0 0 0"/>
       <inertia ixx="0.012411765597" ixy="0" ixz="0" iyy="0.015218160428" iyz="0" izz="0.011763977943"/>
     </inertial>
@@ -64,7 +64,7 @@
       <origin xyz="0 0 0" rpy="${-3.1415927/2} 0 0"/>
       <geometry>
         <!--<mesh filename="${meshes}/${side}_wheel.stl"/>-->
-        <cylinder radius="${radius}" length="0.01"/>
+        <cylinder radius="${radius}" length="15.0"/>
       </geometry>
     </collision>
   </link>

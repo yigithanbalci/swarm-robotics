@@ -35,33 +35,46 @@ class Robot():
             orientation.w,
             )
         self.euler = tf.transformations.euler_from_quaternion(self.orient)
-        print self.euler
+        #print self.euler
         
     def rotate_robot(self, yawangle):
+        #print yawangle
         eu = self.euler[2]
-        while not (eu < (yawangle + math.radians(3)) and  eu > (yawangle - math.radians(3))):
+        zero = yawangle - eu
+        multiplier = 1.0
+        if zero > 0:
+            multiplier = 1.0
+            if zero > 3.1:
+                multiplier = -1.0
+        else:
+            multiplier = -1.0
+
+        self.twist.linear.x = 0.0   
+        self.cmd.publish(self.twist)
+        while not (eu < (yawangle + math.radians(5)) and  eu > (yawangle - math.radians(5))):
             if (abs(eu - yawangle)) > math.radians(15):
                 #self.twist.angular.z = math.radians(10) * ((eu - yawangle) / abs(eu - yawangle))
-                self.twist.angular.z = math.radians(10)
+                self.twist.angular.z = math.radians(15) * multiplier
+                self.cmd.publish(self.twist)
+            elif abs(eu - yawangle) > math.radians(5):
+                self.twist.angular.z = math.radians(2) * multiplier
                 self.cmd.publish(self.twist)
             else:
                 #self.twist.angular.z = math.radians(1) * ((eu - yawangle) / abs(eu - yawangle))
-                self.twist.angular.z = math.radians(1)
+                self.twist.angular.z = math.radians(1) * multiplier
                 self.cmd.publish(self.twist)
                 
-            self.rate.sleep()
             eu = self.euler[2]
             
         self.twist.angular.z = 0
         self.cmd.publish(self.twist)
-        self.rate.sleep()
         
     def goto_point(self, px, py, pz):
-       # completed = False
+        completed = False
 
         #twist = Twist()
 
-       # while not completed:
+        while not completed:
             if self.pose != None:
                 x = self.pose.x
                 y = self.pose.y
@@ -108,6 +121,7 @@ class Robot():
                     self.twist.linear.x = 0.1
                     self.cmd.publish(self.twist)
                 else:
+                    completed = True
                     self.stop()
                 
                 self.rate.sleep()
