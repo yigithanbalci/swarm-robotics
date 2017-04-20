@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(quadro_demo)
 
+<<<<<<< HEAD
 ## Add support for C++11, supported in ROS Kinetic and newer
 # add_definitions(-std=c++11)
 
+=======
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -121,13 +124,18 @@ include_directories(
 )
 
 ## Declare a C++ library
+<<<<<<< HEAD
 # add_library(${PROJECT_NAME}
+=======
+# add_library(quadro_demo
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 #   src/${PROJECT_NAME}/quadro_demo.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
+<<<<<<< HEAD
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
@@ -147,6 +155,19 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
+=======
+# add_dependencies(quadro_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Declare a C++ executable
+# add_executable(quadro_demo_node src/quadro_demo_node.cpp)
+
+## Add cmake target dependencies of the executable
+## same as for the library above
+# add_dependencies(quadro_demo_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+# target_link_libraries(quadro_demo_node
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 #   ${catkin_LIBRARIES}
 # )
 
@@ -165,7 +186,11 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
+<<<<<<< HEAD
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+=======
+# install(TARGETS quadro_demo quadro_demo_node
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

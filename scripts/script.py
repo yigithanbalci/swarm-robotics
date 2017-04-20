@@ -18,6 +18,10 @@ import numpy as np
 import cv2
 from __builtin__ import file
 from twisted.python.filepath import FilePath
+<<<<<<< HEAD
+=======
+from dns.rdatatype import NULL
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 
 class Robot():
 	def __init__(self, name):
@@ -29,7 +33,11 @@ class Robot():
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
 		self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
 		self.twist = Twist()
+<<<<<<< HEAD
 		self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/camera" + "/" + self.name
+=======
+		self.filepath = "/home/yigithan/catkin_ws/src/quadro_demo/camera" + "/" + self.name
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 		self.rate = rospy.Rate(10)
 
@@ -159,7 +167,11 @@ def send_help(self):
 		y = self.pose.y
 		z = self.pose.z
 	try:
+<<<<<<< HEAD
 		fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "a")
+=======
+		fo = open("/home/yigithan/catkin_ws/src/quadro_demo/communication/comm.txt", "a")
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
 		filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
 		fo.write(filestring)
 		fo.close()

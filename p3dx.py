@@ -131,7 +131,11 @@ class Robot():
     def control_help(self):
             while(True):
                 try:
+<<<<<<< HEAD
                     fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "r")
+=======
+                    fo = open("/home/yigithan/catkin_ws/src/quadro_demo/communication/comm.txt", "r")
+>>>>>>> 2f1802d30c62f549acc80747e38173bb7ef9b01b
                     filestring = fo.readline()
                     if (filestring != None):
                         px, py, pz = filestring.split()
