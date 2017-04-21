@@ -56,6 +56,29 @@
     </collision>
     <xacro:box_inertial x="0.445" y="0.38"  z="0.01" mass="1.0" />
   </link>
+<!-- gri kutu -->
+ <link name="simple_grey_box">
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual name="base_visual">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry name="top_geom">
+        <mesh filename="package://p3dx_description/meshes/top.stl"/>
+      </geometry>
+      <material name="TopBlack">
+        <color rgba="0.038 0.038 0.038 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0 0"/>
+      <geometry name="pioneer_geom">
+        <box size="0.45 0.38 0.01"/>
+      </geometry>
+    </collision>
+  </link>
   <gazebo reference="top">
     <material value="Gazebo/Black"/>
   </gazebo>
