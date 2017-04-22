@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import roslib
+import rospkg
 import rospy
 import tf
 
@@ -9,6 +10,7 @@ from time import sleep
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage
+from catkin_pkg import rospack
 
 import math
 import sys
@@ -29,13 +31,14 @@ class Robot():
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
 		self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
 		self.twist = Twist()
-		self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/camera" + "/" + self.name
+		self.filepath = None
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 		self.rate = rospy.Rate(10)
 
 		
 
 	def cam_callback(self, cam_data):
+		import roslib
 		#print("received data type: " + cam_data.format)
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 				
@@ -44,6 +47,8 @@ class Robot():
 		image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
 
 		image_np = hog_human_detection(self, image_np)
+		
+		self.filepath = package_dir() + "/camera" + "/" + self.name
 		
 		#saves image
 		if cam_data.format == "rgb8; jpeg compressed bgr8":
@@ -153,13 +158,17 @@ def hog_human_detection(self, img):
     #cv2.destroyAllWindows()
 	return img
 
+def package_dir():
+	return 	os.path.abspath('quadro_demo')
+
 def send_help(self):
 	if self.pose != None:
 		x = self.pose.x
 		y = self.pose.y
 		z = self.pose.z
 	try:
-		fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "a")
+		roslib.packages.list_packages()
+		fo = open(package_dir() + "/communication/comm.txt", "a")
 		filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
 		fo.write(filestring)
 		fo.close()
