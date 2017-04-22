@@ -11,6 +11,7 @@ from time import sleep
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import radians
+from catkin_pkg import rospack
 
 class Robot():
     def __init__(self, name):
@@ -131,7 +132,8 @@ class Robot():
     def control_help(self):
             while(True):
                 try:
-                    fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "r")
+                    roslib.packages.list_packages()                    
+                    fo = open(roslib.packages.get_package_dir('quadro_demo') +"/communication/comm.txt", "r")
                     filestring = fo.readline()
                     if (filestring != None):
                         px, py, pz = filestring.split()
