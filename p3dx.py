@@ -131,7 +131,7 @@ class Robot():
     def control_help(self):
             while(True):
                 try:
-                    fo = open(package_dir()+"/communication/comm.txt", "r")
+                    fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "r")
                     filestring = fo.readline()
                     if (filestring != None):
                         px, py, pz = filestring.split()
@@ -152,9 +152,6 @@ def return_field(x, y):
         return 4
     else: 
         return 5
-    
-def package_dir():
-    return  os.path.abspath('quadro_demo')
     
 def main(name):
     #rospy.init_node("odometry_check")

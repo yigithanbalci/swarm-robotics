@@ -16,8 +16,6 @@ import os, time
 
 import numpy as np
 import cv2
-from __builtin__ import file
-from twisted.python.filepath import FilePath
 
 class Robot():
 	def __init__(self, name):
@@ -153,16 +151,13 @@ def hog_human_detection(self, img):
     #cv2.destroyAllWindows()
 	return img
 
-def package_dir():
-    return  os.path.abspath('quadro_demo')
-
 def send_help(self):
 	if self.pose != None:
 		x = self.pose.x
 		y = self.pose.y
 		z = self.pose.z
 	try:
-		fo = open(package_dir()+"/communication/comm.txt", "a")
+		fo = open("/home/yigit/catkin_ws/src/quadro_demo/communication/comm.txt", "a")
 		filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
 		fo.write(filestring)
 		fo.close()
