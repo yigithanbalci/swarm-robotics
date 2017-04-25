@@ -29,7 +29,7 @@ class Robot():
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
 		self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
 		self.twist = Twist()
-		self.filepath = package_dir()+"/camera" + "/" + self.name
+		self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/camera" + "/" + self.name
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 		self.rate = rospy.Rate(10)
 
@@ -50,7 +50,7 @@ class Robot():
 			cv2.imwrite(self.filepath + "/" + self.name + "-" + self.timestr + ".jpeg", image_np)
 		
 		#shows image
-		cv2.imshow('cv_img', image_np)
+		cv2.imshow(self.name, image_np)
 		cv2.waitKey(2)
 		
 		#creates path if not exist but it dont do this from .launch
