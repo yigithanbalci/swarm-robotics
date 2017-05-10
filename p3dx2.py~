@@ -159,7 +159,7 @@ def main(name):
     # subscriber = rospy.Subscriber("/ground_truth/state", Odometry, callback)
     # rospy.spin()
     
-    rospy.init_node('P3dx', name)
+    rospy.init_node('P3dx2', name)
     #rospy.init_node('robot_controller')
     robot = Robot(name)
     robot.control_help()

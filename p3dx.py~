@@ -131,7 +131,7 @@ class Robot():
     def control_help(self):
             while(True):
                 try:
-                    fo = open("/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "r")
+                    fo = open("/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/goto_points.txt", "r")
                     filestring = fo.readline()
                     if (filestring != None):
                         px, py, pz = filestring.split()
