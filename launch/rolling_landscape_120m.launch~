@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find quadro_demo)/launch/start.launch">
+   <arg name="world" value="$(find quadro_demo)/worlds/deneme.world"/> 
+  </include>
+
+</launch>
