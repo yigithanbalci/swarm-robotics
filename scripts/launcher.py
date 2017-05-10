@@ -25,7 +25,7 @@ def launch():
     os.system("roslaunch quadro_demo demo.launch")
 
 def save():
-    fo = open("/home/yigithan/catkin_ws/src/quadro_demo/demo.launch", "w")
+    fo = open("/home/berkan/catkin_ws/src/quadro_demo/demo.launch", "w")
     filstring = filestring
     i = 1
     for entry in entries:
