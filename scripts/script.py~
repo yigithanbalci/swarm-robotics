@@ -27,7 +27,7 @@ class Robot():
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
 		self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
 		self.twist = Twist()
-		self.filepath = "/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/camera" + "/" + self.name
+		self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/camera" + "/" + self.name
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 		self.rate = rospy.Rate(10)
 

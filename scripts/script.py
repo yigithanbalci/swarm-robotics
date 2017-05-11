@@ -27,7 +27,7 @@ class Robot():
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
 		self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
 		self.twist = Twist()
-		self.filepath = "/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/camera" + "/" + self.name
+		self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/camera" + "/" + self.name
 		self.timestr = time.strftime("%Y%m%d-%H%M%S")
 		self.rate = rospy.Rate(10)
 
@@ -84,6 +84,7 @@ class Robot():
 				#print(p)
 				r = math.sqrt(p)
 				#print(r)
+				'''
 				xangle = math.acos((px-x)/r)
 				yangle = math.acos((py-y)/r)
 				zangle = math.acos((pz-z)/r)
@@ -95,12 +96,40 @@ class Robot():
 				elif(r < 0.5):
 					self.twist.linear.x = math.cos(xangle) * 0.1
 					self.twist.linear.y = math.cos(yangle) * 0.1
-					self.twist.linear.z = math.cos(zangle) * 0.1 
+					self.twist.linear.z = 0.1 
 				else:				
 					self.twist.linear.x = math.cos(xangle)
 					self.twist.linear.y = math.cos(yangle)
-					self.twist.linear.z = math.cos(zangle)
+					self.twist.linear.z = 1.0
+					'''
 					
+				if(px-x < 0.1):
+					self.twist.linear.x = 0.0
+				elif(px-x < 0.5):
+					self.twist.linear.x = 0.1
+				elif(px-x < 1):
+					self.twist.linear.x = 0.5
+				elif(px-x > 1):
+					self.twist.linear.x = 1.0
+					
+				if(py-y < 0.1):
+					self.twist.linear.y = 0.0
+				elif(py-y < 0.5):
+					self.twist.linear.y = 0.1
+				elif(py-y > 0.5):
+					self.twist.linear.y = 1.0
+				elif(py-y > 1):
+					self.twist.linear.y = 1.0
+					
+				if(pz-z < 0.1):
+					self.twist.linear.z = 0.0
+				elif(pz-z < 0.5):
+					self.twist.linear.z = 0.1
+				elif(pz-z > 0.5):
+					self.twist.linear.z = 1.0
+				elif(pz-z > 1):
+					self.twist.linear.z = 1.0
+
 
 				self.twist.angular.x = 0.0
 				self.twist.angular.y = 0.0 
@@ -157,7 +186,7 @@ def send_help(self):
 		y = self.pose.y
 		z = self.pose.z
 	try:
-		fo = open("/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "a")
+		fo = open("/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "a")
 		filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
 		fo.write(filestring)
 		fo.close()
