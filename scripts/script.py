@@ -22,6 +22,8 @@ class Robot():
 		self.pose = None
 		self.orient = None
 		self.euler = None
+		self.insan = 0
+		self.bekle = 0
 		self.name = name
 		self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
@@ -45,8 +47,9 @@ class Robot():
 		
 		#saves image
 		if cam_data.format == "rgb8; jpeg compressed bgr8":
-			cv2.imwrite(self.filepath + "/" + self.name + "-" + self.timestr + ".jpeg", image_np)
-		
+			if self.insan == 1:
+				cv2.imwrite(self.filepath + "/" + self.name + "-" + self.timestr + ".jpeg", image_np)
+				self.insan = 0
 		#shows image
 		cv2.imshow(self.name, image_np)
 		cv2.waitKey(2)
@@ -66,7 +69,7 @@ class Robot():
             orientation.w,
             )
 		self.euler = tf.transformations.euler_from_quaternion(self.orient)
-		print self.euler
+		#print self.euler
 
 	def goto_point(self, px, py, pz):
 		completed = False
@@ -102,35 +105,38 @@ class Robot():
 					self.twist.linear.y = math.cos(yangle)
 					self.twist.linear.z = 1.0
 					'''
-					
-				if(px-x < 0.1):
+				if self.bekle == 0:
+					if(px-x < 0.1):
+						self.twist.linear.x = 0.0
+					elif(px-x < 0.5):
+						self.twist.linear.x = 0.1
+					elif(px-x < 1):
+						self.twist.linear.x = 0.5
+					elif(px-x > 1):
+						self.twist.linear.x = 1.0
+						
+					if(py-y < 0.1):
+						self.twist.linear.y = 0.0
+					elif(py-y < 0.5):
+						self.twist.linear.y = 0.1
+					elif(py-y > 0.5):
+						self.twist.linear.y = 1.0
+					elif(py-y > 1):
+						self.twist.linear.y = 1.0
+						
+					if(pz-z < 0.1):
+						self.twist.linear.z = 0.0
+					elif(pz-z < 0.5):
+						self.twist.linear.z = 0.1
+					elif(pz-z > 0.5):
+						self.twist.linear.z = 1.0
+					elif(pz-z > 1):
+						self.twist.linear.z = 1.0
+				elif self.bekle == 1:
 					self.twist.linear.x = 0.0
-				elif(px-x < 0.5):
-					self.twist.linear.x = 0.1
-				elif(px-x < 1):
-					self.twist.linear.x = 0.5
-				elif(px-x > 1):
-					self.twist.linear.x = 1.0
-					
-				if(py-y < 0.1):
 					self.twist.linear.y = 0.0
-				elif(py-y < 0.5):
-					self.twist.linear.y = 0.1
-				elif(py-y > 0.5):
-					self.twist.linear.y = 1.0
-				elif(py-y > 1):
-					self.twist.linear.y = 1.0
-					
-				if(pz-z < 0.1):
 					self.twist.linear.z = 0.0
-				elif(pz-z < 0.5):
-					self.twist.linear.z = 0.1
-				elif(pz-z > 0.5):
-					self.twist.linear.z = 1.0
-				elif(pz-z > 1):
-					self.twist.linear.z = 1.0
-
-
+					
 				self.twist.angular.x = 0.0
 				self.twist.angular.y = 0.0 
 				self.twist.angular.z = 0.0
@@ -155,26 +161,23 @@ def draw_detections(img, rects, thickness = 1):
         # so we slightly shrink the rectangles to get a nicer output.
         pad_w, pad_h = int(0.15*w), int(0.05*h)
         cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), thickness)
-
+		
 
 def hog_human_detection(self, img):
 
 	hog = cv2.HOGDescriptor()
 	hog.setSVMDetector( cv2.HOGDescriptor_getDefaultPeopleDetector() )
+	found = None
 	found,w=hog.detectMultiScale(img, winStride=(8,8), padding=(32,32), scale=1.05)
 	foundCounter = 0
+
 	for x, y, w, h in found:
-		if(x != 0):
-			foundCounter = foundCounter + 1
-		if(y != 0):
-			foundCounter = foundCounter + 1
-		if(w != 0):
-			foundCounter = foundCounter + 1
-		if(h != 0):
-			foundCounter = foundCounter + 1
+		foundCounter = foundCounter + 1
 			
 	if(foundCounter != 0):
 		send_help(self)
+		self.insan = 1
+		self.bekle = 1
 	draw_detections(img,found)
 	#cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
@@ -192,6 +195,8 @@ def send_help(self):
 		fo.close()
 	except:
 		pass
+	
+	
 def main(name, sx, sy, sz):
     #rospy.init_node("odometry_check")
 
