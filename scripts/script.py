@@ -24,6 +24,7 @@ class Robot():
 		self.euler = None
 		self.insan = 0
 		self.bekle = 0
+		self.takip = False
 		self.name = name
 		self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
 		self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
@@ -87,6 +88,20 @@ class Robot():
 				#print(p)
 				r = math.sqrt(p)
 				#print(r)
+				
+				if px-x == 0:
+					yonx = 0
+				else:
+					yonx = (px-x)/(px-x)
+				if py-y == 0:
+					yony = 0
+				else:
+					yony = (py-y)/(py-y)
+				if pz-z == 0:
+					yonz = 0
+				else:
+					yonz = (pz-z)/(pz-z)				
+				
 				'''
 				xangle = math.acos((px-x)/r)
 				yangle = math.acos((py-y)/r)
@@ -107,35 +122,45 @@ class Robot():
 					'''
 				if self.bekle == 0:
 					if(px-x < 0.1):
-						self.twist.linear.x = 0.0
+						self.twist.linear.x = 0.0 * yonx
 					elif(px-x < 0.5):
-						self.twist.linear.x = 0.1
+						self.twist.linear.x = 0.1 * yonx
 					elif(px-x < 1):
-						self.twist.linear.x = 0.5
+						self.twist.linear.x = 0.5 * yonx
 					elif(px-x > 1):
-						self.twist.linear.x = 1.0
+						self.twist.linear.x = 1.0 * yonx
 						
 					if(py-y < 0.1):
-						self.twist.linear.y = 0.0
+						self.twist.linear.y = 0.0 * yony
 					elif(py-y < 0.5):
-						self.twist.linear.y = 0.1
+						self.twist.linear.y = 0.1 * yony
 					elif(py-y > 0.5):
-						self.twist.linear.y = 1.0
+						self.twist.linear.y = 1.0 * yony
 					elif(py-y > 1):
-						self.twist.linear.y = 1.0
+						self.twist.linear.y = 1.0 * yony
 						
 					if(pz-z < 0.1):
-						self.twist.linear.z = 0.0
+						self.twist.linear.z = 0.0 * yonz
 					elif(pz-z < 0.5):
-						self.twist.linear.z = 0.1
+						self.twist.linear.z = 0.1 * yonz
 					elif(pz-z > 0.5):
-						self.twist.linear.z = 1.0
+						self.twist.linear.z = 1.0 * yonz
 					elif(pz-z > 1):
-						self.twist.linear.z = 1.0
+						self.twist.linear.z = 1.0 * yonz
 				elif self.bekle == 1:
-					self.twist.linear.x = 0.0
-					self.twist.linear.y = 0.0
-					self.twist.linear.z = 0.0
+					self.twist.linear.x = 0.1 * yonx
+					self.twist.linear.y = 0.1 * yony
+					self.twist.linear.z = 0.1 * yonz
+					if(px-x < 0.1):
+						self.twist.linear.x = 0.0 * yonx
+					if(py-y < 0.1):
+						self.twist.linear.y = 0.0 * yony
+					if(pz-z < 0.1):
+						self.twist.linear.z = 0.0 * yonz
+					self.cmd.publish(self.twist)
+					self.rate.sleep()
+					while self.takip:
+						pass
 					
 				self.twist.angular.x = 0.0
 				self.twist.angular.y = 0.0 
@@ -178,6 +203,11 @@ def hog_human_detection(self, img):
 		send_help(self)
 		self.insan = 1
 		self.bekle = 1
+		self.takip = True
+	elif(foundCounter == 0):
+		self.takip = False
+		self.bekle = 0
+		self.insan = 0
 	draw_detections(img,found)
 	#cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
