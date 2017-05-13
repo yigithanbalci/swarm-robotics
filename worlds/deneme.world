@@ -1298,9 +1298,9 @@
       <static>0</static>
     </model>
     <state world_name='default'>
-      <sim_time>930 967000000</sim_time>
-      <real_time>249 246869326</real_time>
-      <wall_time>1494428782 944790378</wall_time>
+      <sim_time>962 305000000</sim_time>
+      <real_time>31 482158332</real_time>
+      <wall_time>1494683784 859008157</wall_time>
       <model name='asphalt_plane'>
         <pose>0 0 0 0 -0 0</pose>
         <link name='link'>
@@ -1536,45 +1536,45 @@
         </link>
       </model>
       <model name='person_standing_2'>
-        <pose>10.3927 -30.3227 0.05 0 -1e-06 -1.53552</pose>
+        <pose>10.3927 -30.3227 0.049999 -1e-06 -1e-06 -1.53534</pose>
         <link name='link'>
-          <pose>10.3927 -30.3227 0.05 0 -1e-06 -1.53552</pose>
+          <pose>10.3927 -30.3227 0.049999 -1e-06 -1e-06 -1.53534</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='person_standing_3'>
-        <pose>-13.7447 -30.4249 0.05 1e-06 1e-06 -1.57026</pose>
+        <pose>-13.7447 -30.4249 0.050001 1e-06 1e-06 -1.57007</pose>
         <link name='link'>
-          <pose>-13.7447 -30.4249 0.05 1e-06 1e-06 -1.57026</pose>
+          <pose>-13.7447 -30.4249 0.050001 1e-06 1e-06 -1.57007</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='person_standing_4'>
-        <pose>4.99947 36 0.05 0 1e-06 -1.59131</pose>
+        <pose>4.99947 36 0.05 1e-06 1e-06 -1.59113</pose>
         <link name='link'>
-          <pose>4.99947 36 0.05 0 1e-06 -1.59131</pose>
+          <pose>4.99947 36 0.05 1e-06 1e-06 -1.59113</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='person_standing_5'>
-        <pose>-9.32615 -16.1367 0.05 1e-06 1e-06 -1.58985</pose>
+        <pose>-9.32615 -16.1367 0.05 1e-06 1e-06 -1.58967</pose>
         <link name='link'>
-          <pose>-9.32615 -16.1367 0.05 1e-06 1e-06 -1.58985</pose>
+          <pose>-9.32615 -16.1367 0.05 1e-06 1e-06 -1.58967</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='person_standing_6'>
-        <pose>1.02263 25.4472 0.05 -1e-06 -1e-06 -1.50406</pose>
+        <pose>1.02263 25.4472 0.05 -1.05879e-22 -1e-06 -1.50387</pose>
         <link name='link'>
-          <pose>1.02263 25.4472 0.05 -1e-06 -1e-06 -1.50406</pose>
+          <pose>1.02263 25.4472 0.05 -1.05879e-22 -1e-06 -1.50387</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -1583,7 +1583,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>12.6233 22.8197 23.5663 -3.38022e-17 1.14773 2.93104</pose>
+        <pose>72.445 -68.9287 21.7727 0 0.24773 2.41904</pose>
         <view_controller>orbit</view_controller>
       </camera>
     </gui>

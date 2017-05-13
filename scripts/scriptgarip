@@ -25,6 +25,8 @@ class Robot():
         self.euler = None
         self.insan = 0
         self.bekle = 0
+        self.xfark = 0
+        self.xfarkilk = True
         self.takip = False
         self.name = name
         self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
@@ -242,54 +244,31 @@ def send_help(self):
     
     
 def track_human_center(threadName, self, humanx, humany):
-    if(120-humany) == 0:
-        yonx = 0
-    elif (120-humany) < 0:
-        yonx = -1
-    else:
-        yonx = 1
-    
     if(160-humanx) == 0:
-        yony = 0
+        yon = 0
+        self.xfark = 0
     elif (160-humanx) < 0:
-        yony = -1
+        yon = -1
     else:
-        yony = 1
-    
-    farkx = 160-humanx
-    farky = 120-humany
-    
-    if farkx < 0:
-        farkx = farkx * (-1)
+        yon = 1
         
-    if farkx > 40:
-        hizx = 1.0
-    elif farkx > 30:
-        hizx = 0.7
-    elif farkx > 20:
-        hizx = 0.5
-    elif farkx > 10:
-        hizx = 0.3
+    if self.xfarkilk == True:
+        self.xfark = 1
+        self.xfarkilk = False
     else:
-        hizx = 0.1
+        self.xfark = self.xfark - (160-humanx)
     
-    if farky < 0:
-        farky = farky * (-1)
-        
-    if farky > 40:
-        hizy = 1.0
-    elif farky > 30:
-        hizy = 0.7
-    elif farky > 20:
-        hizy = 0.5
-    elif farky > 10:
-        hizy = 0.3
-    else:
-        hizy = 0.1
+    if self.xfark < 0:
+        self.xfark = self.xfark * (-1)
     
+    if self.xfark >= 5:
+        hiz = 1.0
+    elif self.xfark >= 3:
+        hiz = 0.5
+    elif self.xfark >= 1:
+        hiz = 0.1
     
-    self.twist.linear.x = yonx * hizy
-    self.twist.linear.y = yony * hizx
+    self.twist.linear.y = 0.1 * yon * hiz
     self.cmd.publish(self.twist)
     self.rate.sleep()
     
