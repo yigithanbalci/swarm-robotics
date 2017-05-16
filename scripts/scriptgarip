@@ -25,8 +25,9 @@ class Robot():
         self.euler = None
         self.insan = 0
         self.bekle = 0
+        self.xfark = 0
+        self.xfarkilk = True
         self.takip = False
-        self.ilkgorus = True
         self.name = name
         self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
@@ -171,7 +172,6 @@ class Robot():
                         self.twist.linear.z = 0.0 * yonz
                     self.cmd.publish(self.twist)
                     self.rate.sleep()
-                    #time.sleep(2)
                     while self.takip:
                         pass
                     
@@ -218,17 +218,12 @@ def hog_human_detection(self, img):
         self.bekle = 1
         self.takip = True
         pix = (160-(x+(w/2)))
-        pix2 = (120-(y+(h/2)))
-        print str(pix2) + time.strftime("%c")   
-        if self.ilkgorus == True:
-            #time.sleep(2)
-            self.ilkgorus = False
+        print str(pix) + time.strftime("%c")
         thread.start_new_thread(track_human_center, ("TrackThread", self,(x+(w/2)), (y+(h/2))))
     elif(foundCounter == 0):
         self.takip = False
         self.bekle = 0
         self.insan = 0
-        self.ilkgorus = True
     draw_detections(img,found)
     #cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
@@ -249,87 +244,31 @@ def send_help(self):
     
     
 def track_human_center(threadName, self, humanx, humany):
-    if(120-humany) == 0:
-        yonx = 0
-    elif (120-humany) < 0:
-        yonx = -1
-    else:
-        yonx = 1
-    
     if(160-humanx) == 0:
-        yony = 0
+        yon = 0
+        self.xfark = 0
     elif (160-humanx) < 0:
-        yony = -1
+        yon = -1
     else:
-        yony = 1
-    
-    farkx = 160-humanx
-    farky = 120-humany
-    
-    if farkx < 0:
-        farkx = farkx * (-1)
+        yon = 1
         
-    if farkx > 100:
-        hizx = 1.0
-    elif farkx > 90:
-        hizx = 0.9
-    elif farkx > 80:
-        hizx = 0.8
-    elif farkx > 70:
-        hizx = 0.7
-    elif farkx > 60:
-        hizx = 0.6
-    elif farkx > 50:
-        hizx = 0.5
-    elif farkx > 40:
-        hizx = 0.4
-    elif farkx > 30:
-        hizx = 0.3
-    elif farkx > 20:
-        hizx = 0.2
-    elif farkx > 8:
-        hizx = 0.1
+    if self.xfarkilk == True:
+        self.xfark = 1
+        self.xfarkilk = False
     else:
-        hizx = 0.0
+        self.xfark = self.xfark - (160-humanx)
     
-    if farky < 0:
-        farky = farky * (-1)
-    '''   
-    if farky > 100:
-        hizy = 1.0
-    elif farky > 90:
-        hizy = 0.9
-    elif farky > 80:
-        hizy = 0.8
-    elif farky > 70:
-        hizy = 0.7
-    elif farky > 60:
-        hizy = 0.6
-    elif farky > 50:
-        hizy = 0.5
-    elif farky > 40:
-        hizy = 0.4
-    elif farky > 30:
-        hizy = 0.3
-    elif farky > 20:
-        hizy = 0.2
-    elif farky > 8:
-        hizy = 0.1
-    else:
-        hizy = 0.0
-    '''
-        
-    if farky > 30 and farky < 40:
-        hizy = 0.0
-    elif farky < 26:
-        hizy = 0.2
-    elif farky > 46:
-        hizy = 0.2
-    else:
-        hizy = 0.0
+    if self.xfark < 0:
+        self.xfark = self.xfark * (-1)
     
-    self.twist.linear.x = yonx * hizy
-    self.twist.linear.y = yony * hizx
+    if self.xfark >= 5:
+        hiz = 1.0
+    elif self.xfark >= 3:
+        hiz = 0.5
+    elif self.xfark >= 1:
+        hiz = 0.1
+    
+    self.twist.linear.y = 0.1 * yon * hiz
     self.cmd.publish(self.twist)
     self.rate.sleep()
     
