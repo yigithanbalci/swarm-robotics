@@ -268,17 +268,19 @@ def hog_human_detection(self, img):
                     farkx = abs(160-(x+(w/2)))
                     farky = abs(120-(y+(h/2)))
                     
-                    if farkx < 15 and farky < 41 and farky > 29:
-                        if yerdegistirme == True:
-                            print "farklı"
-                        elif yerdegistirme == False:
-                            print "aynı"
-                            if self.goback == False:
-                                thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0))
-                            print "aynigo"
-                            self.takipbirakmapose = self.pose
-                            self.takipbirakmaani = time.time()
-                            return img
+                    if abs(self.twist.linear.x) < 0.1 and abs(self.twist.linear.y) < 0.1:
+                        
+                        if farkx < 25 and farky < 75 :
+                            if yerdegistirme == True:
+                                print "farklı"
+                            elif yerdegistirme == False:
+                                print "aynı"
+                                if self.goback == False:
+                                    thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0))
+                                print "aynigo"
+                                self.takipbirakmapose = self.pose
+                                self.takipbirakmaani = time.time()
+                                return img
                     self.eskipose = self.pose
             if self.goback == False:
                 thread.start_new_thread(track_human_center, ("TrackThread", self,(x+(w/2)), (y+(h/2))))
@@ -366,8 +368,8 @@ def track_human_center(threadName, self, humanx, humany):
     else:
         yony = 1
     
-    farkx = 160-humanx
-    farky = 120-humany
+    farkx = abs(160-humanx)
+    farky = abs(120-humany)
     
     if farkx < 0:
         farkx = farkx * (-1)
@@ -390,9 +392,9 @@ def track_human_center(threadName, self, humanx, humany):
         hizx = 0.3
     elif farkx > 20:
         hizx = 0.2
-    elif farkx > 8:
+    elif farkx > 15:
         hizx = 0.1
-    elif farkx <= 8:
+    elif farkx <= 15:
         hizx = 0.0
     
     if farky < 0:
@@ -424,9 +426,13 @@ def track_human_center(threadName, self, humanx, humany):
         
     if farky > 29 and farky < 41:
         hizy = 0.0
-    elif farky < 20:
+    elif farky <= 20 and farky >= 10:
+        hizy = 0.1
+    elif farky >= 50 and farky <= 60:
+        hizy = 0.1
+    elif farky < 10:
         hizy = 0.2
-    elif farky > 50:
+    elif farky > 60:
         hizy = 0.2
     else:
         hizy = 0.0
