@@ -21,6 +21,7 @@ import cv2
 class Robot():
     def __init__(self, name):
         self.pose = None
+        self.oldtime = None
         self.orient = None
         self.euler = None
         self.insan = 0
@@ -28,6 +29,7 @@ class Robot():
         self.takip = False
         self.ilkgorus = True
         self.name = name
+        self.eskipose = None
         self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
         self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
@@ -219,10 +221,26 @@ def hog_human_detection(self, img):
         self.takip = True
         pix = (160-(x+(w/2)))
         pix2 = (120-(y+(h/2)))
-        print str(pix2) + time.strftime("%c")   
+        print str(pix2) + time.strftime("%c")  
         if self.ilkgorus == True:
             #time.sleep(2)
+            self.oldtime = time.time()
+            self.eskipose = self.pose
             self.ilkgorus = False
+        if self.oldtime != None:
+            if time.time() - self.oldtime > 5:
+                self.oldtime = time.time()
+                yerdegistirme = yer_degistirme(self.eskipose, self.pose)
+                
+                farkx = abs(160-(x+(w/2)))
+                farky = abs(120-(y+(h/2)))
+                
+                if farkx < 15 and farky < 41 and farky > 29:
+                    if yerdegistirme == True:
+                        print "farklı"
+                    elif yerdegistirme == False:
+                        print "aynı"
+                self.eskipose = self.pose
         thread.start_new_thread(track_human_center, ("TrackThread", self,(x+(w/2)), (y+(h/2))))
     elif(foundCounter == 0):
         self.takip = False
@@ -233,6 +251,27 @@ def hog_human_detection(self, img):
     #cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
     return img
+
+def yer_degistirme(eskipose, pose):
+    
+    if pose != None:
+        x = pose.x
+        y = pose.y
+        z = pose.z
+        
+    if eskipose != None:
+        ex = eskipose.x
+        ey = eskipose.y
+        ez = eskipose.z
+        
+    p = (abs(x-ex)**2) + (abs(ey-y)**2) + (abs(ez-z)**2)
+    
+    r = math.sqrt(p)
+    
+    if r > 0.5:
+        return True
+    else:
+        return False
 
 def send_help(self):
     if self.pose != None:
@@ -289,7 +328,7 @@ def track_human_center(threadName, self, humanx, humany):
         hizx = 0.2
     elif farkx > 8:
         hizx = 0.1
-    else:
+    elif farkx <= 8:
         hizx = 0.0
     
     if farky < 0:
@@ -319,19 +358,63 @@ def track_human_center(threadName, self, humanx, humany):
         hizy = 0.0
     '''
         
-    if farky > 30 and farky < 40:
+    if farky > 29 and farky < 41:
         hizy = 0.0
-    elif farky < 26:
+    elif farky < 20:
         hizy = 0.2
-    elif farky > 46:
+    elif farky > 50:
         hizy = 0.2
     else:
         hizy = 0.0
-    
+        
+    '''
+    dist = distBul(humanx, humany)
+    if dist <= 2:
+        hizy = -0.2
+    elif dist <= 3 and dist > 2:
+        hizy = 0
+    elif dist > 3:
+        hizy = 0.2
+        '''
+        
+    #self.twist.linear.x = hizy
     self.twist.linear.x = yonx * hizy
     self.twist.linear.y = yony * hizx
     self.cmd.publish(self.twist)
     self.rate.sleep()
+    
+def distBul (wi, hi):
+    frame_size = wi * hi
+    if frame_size >= 11523:
+        dist = 2   #veya daha kucuk
+
+    elif frame_size < 11523 and frame_size > 7700:
+        #dist = 2 ile 2.5 arası        
+        if frame_size > 9600:
+            dist = 2.5
+        else:
+            dist = 2.25
+        
+
+    elif frame_size < 7700 and frame_size > 6528:
+         #dist 2.5 ile 3 arasında
+        if frame_size > 7100:
+            dist = 2.75
+        else:
+            dist = 3.0
+
+    elif frame_size < 6528 and frame_size > 5593:
+        #dist 3 ile 3.5 arasında
+        if frame_size > 6000:
+            dist = 3.25
+        else:
+            dist = 3.5
+
+    elif frame_size < 5593:
+        #dist 3.5ten buyuk
+        dist = 4.0
+    
+    return dist
     
 def main(name, sx, sy, sz):
     #rospy.init_node("odometry_check")

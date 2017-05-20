@@ -12,7 +12,7 @@
        <arg name="tf_prefix" value="uav1" />
        <arg name="model" value="$(arg model)" />
        <arg name="y" value="-30.0" />
-       <arg name="x" value="-40.0" />
+       <arg name="x" value="-35.0" />
        <arg name="z" value="0.189" />
      </include>
    </group>
@@ -23,8 +23,9 @@
        <arg name="tf_prefix" value="uav2" />
        <arg name="model" value="$(arg model)" />
        <arg name="y" value="-10.0" />
-       <arg name="x" value="-40.0" />
+       <arg name="x" value="-35.0" />
        <arg name="z" value="0.189" />
+	<arg name="Y" value="+2.5"/>
      </include>
    </group>
    
@@ -34,7 +35,7 @@
        <arg name="tf_prefix" value="uav3" />
        <arg name="model" value="$(arg model)" />
        <arg name="y" value="10.0" />
-       <arg name="x" value="-40.0" />
+       <arg name="x" value="-35.0" />
        <arg name="z" value="0.189" />
      </include>
    </group>
@@ -45,7 +46,7 @@
        <arg name="tf_prefix" value="uav4" />
        <arg name="model" value="$(arg model)" />
        <arg name="y" value="30.0" />
-       <arg name="x" value="-40.0" />
+       <arg name="x" value="-35.0" />
        <arg name="z" value="0.189" />
      </include>
    </group>
