@@ -24,6 +24,10 @@ class Robot():
         self.oldtime = None
         self.orient = None
         self.euler = None
+        self.ilkgoruspose = None
+        self.takipbirakmaani = None
+        self.goback = False
+        self.takipbirakmapose = None
         self.insan = 0
         self.bekle = 0
         self.takip = False
@@ -80,7 +84,7 @@ class Robot():
 
     def goto_point(self, px, py, pz):
         completed = False
-
+        
         #twist = Twist()
 
         while not completed:
@@ -93,6 +97,9 @@ class Robot():
                 p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
                 #print(p)
                 r = math.sqrt(p)
+                if r < 0.5:
+                    completed = True
+                    
                 #print(r)
                 
                 if px-x == 0:
@@ -135,59 +142,75 @@ class Robot():
                     self.twist.linear.z = 1.0
                     '''
                 if self.bekle == 0:
-                    if(px-x < 0.1):
+                    farkx = abs(px-x)
+                    farky = abs(py-y)
+                    farkz = abs(pz-z)
+                    
+                    if(farkx < 0.1):
                         self.twist.linear.x = 0.0 * yonx
-                    elif(px-x < 0.5):
+                    elif(farkx < 0.5):
                         self.twist.linear.x = 0.1 * yonx
-                    elif(px-x < 1):
+                    elif(farkx < 1):
                         self.twist.linear.x = 0.5 * yonx
-                    elif(px-x > 1):
+                    elif(farkx > 1):
                         self.twist.linear.x = 1.0 * yonx
                         
-                    if(py-y < 0.1):
+                    if(farky < 0.1):
                         self.twist.linear.y = 0.0 * yony
-                    elif(py-y < 0.5):
+                    elif(farky < 0.5):
                         self.twist.linear.y = 0.1 * yony
-                    elif(py-y > 0.5):
+                    elif(farky > 0.5):
                         self.twist.linear.y = 1.0 * yony
-                    elif(py-y > 1):
+                    elif(farky > 1):
                         self.twist.linear.y = 1.0 * yony
                         
-                    if(pz-z < 0.1):
+                    if(farkz < 0.1):
                         self.twist.linear.z = 0.0 * yonz
-                    elif(pz-z < 0.5):
+                    elif(farkz < 0.5):
                         self.twist.linear.z = 0.1 * yonz
-                    elif(pz-z > 0.5):
+                    elif(farkz > 0.5):
                         self.twist.linear.z = 1.0 * yonz
-                    elif(pz-z > 1):
+                    elif(farkz > 1):
                         self.twist.linear.z = 1.0 * yonz
                 elif self.bekle == 1:
+                    farkx = abs(px-x)
+                    farky = abs(py-y)
+                    farkz = abs(pz-z)
+                    
                     self.twist.linear.x = 0.1 * yonx
                     self.twist.linear.y = 0.1 * yony
                     self.twist.linear.z = 0.1 * yonz
-                    if(px-x < 0.1):
+                    if(farkx < 0.1):
                         self.twist.linear.x = 0.0 * yonx
-                    if(py-y < 0.1):
+                    if(farky < 0.1):
                         self.twist.linear.y = 0.0 * yony
-                    if(pz-z < 0.1):
+                    if(farkz < 0.1):
                         self.twist.linear.z = 0.0 * yonz
                     self.cmd.publish(self.twist)
                     self.rate.sleep()
                     #time.sleep(2)
                     while self.takip:
+                        #print "gotoloop"
                         pass
+                    print "gotopoint"
                     
                 self.twist.angular.x = 0.0
                 self.twist.angular.y = 0.0 
                 self.twist.angular.z = 0.0
-            
+                
+                if self.takipbirakmapose != None:
+                    insandanuzaklasma = insandan_uzaklasma(self.takipbirakmapose, self.pose, 5)
+                    if insandanuzaklasma == True:
+                        pass
+                    else:
+                        self.twist.linear.z = 0.0 * yonz
             
                 # Bir şey yap
                 self.cmd.publish(self.twist)
                 self.rate.sleep()
             else:
                 pass
-
+        return True
 
 def inside(r, q):
     rx, ry, rw, rh = r
@@ -215,35 +238,54 @@ def hog_human_detection(self, img):
         foundCounter = foundCounter + 1
             
     if(foundCounter != 0):
-        send_help(self)
-        self.insan = 1
-        self.bekle = 1
-        self.takip = True
-        pix = (160-(x+(w/2)))
-        pix2 = (120-(y+(h/2)))
-        print str(pix2) + time.strftime("%c")  
-        if self.ilkgorus == True:
-            #time.sleep(2)
-            self.oldtime = time.time()
-            self.eskipose = self.pose
-            self.ilkgorus = False
-        if self.oldtime != None:
-            if time.time() - self.oldtime > 5:
+        if self.takipbirakmapose != None:
+            insandanuzaklasma = insandan_uzaklasma(self.takipbirakmapose, self.pose, 5)
+            if insandanuzaklasma == True:
+                takip = True
+            else:
+                takip = False
+        elif self.takipbirakmapose == None:
+            takip = True
+        if takip == True:
+            send_help(self)
+            self.insan = 1
+            self.bekle = 1
+            self.takip = True
+            pix = (160-(x+(w/2)))
+            pix2 = (120-(y+(h/2)))
+            print str(pix2) + time.strftime("%c")  
+            if self.ilkgorus == True:
+                #time.sleep(2)
+                self.ilkgoruspose = self.pose
                 self.oldtime = time.time()
-                yerdegistirme = yer_degistirme(self.eskipose, self.pose)
-                
-                farkx = abs(160-(x+(w/2)))
-                farky = abs(120-(y+(h/2)))
-                
-                if farkx < 15 and farky < 41 and farky > 29:
-                    if yerdegistirme == True:
-                        print "farklı"
-                    elif yerdegistirme == False:
-                        print "aynı"
                 self.eskipose = self.pose
-        thread.start_new_thread(track_human_center, ("TrackThread", self,(x+(w/2)), (y+(h/2))))
+                self.ilkgorus = False
+            if self.oldtime != None:
+                if time.time() - self.oldtime > 5:
+                    self.oldtime = time.time()
+                    yerdegistirme = yer_degistirme(self.eskipose, self.pose)
+                    
+                    farkx = abs(160-(x+(w/2)))
+                    farky = abs(120-(y+(h/2)))
+                    
+                    if farkx < 15 and farky < 41 and farky > 29:
+                        if yerdegistirme == True:
+                            print "farklı"
+                        elif yerdegistirme == False:
+                            print "aynı"
+                            if self.goback == False:
+                                thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0))
+                            print "aynigo"
+                            self.takipbirakmapose = self.pose
+                            self.takipbirakmaani = time.time()
+                            return img
+                    self.eskipose = self.pose
+            if self.goback == False:
+                thread.start_new_thread(track_human_center, ("TrackThread", self,(x+(w/2)), (y+(h/2))))
+        else:
+            pass
     elif(foundCounter == 0):
-        self.takip = False
+        #self.takip = False
         self.bekle = 0
         self.insan = 0
         self.ilkgorus = True
@@ -251,6 +293,27 @@ def hog_human_detection(self, img):
     #cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
     return img
+
+def insandan_uzaklasma(eskipose, pose, mesafe):
+    
+    if pose != None:
+        x = pose.x
+        y = pose.y
+        z = pose.z
+        
+    if eskipose != None:
+        ex = eskipose.x
+        ey = eskipose.y
+        ez = eskipose.z
+        
+    p = (abs(x-ex)**2) + (abs(ey-y)**2) + (abs(ez-z)**2)
+    
+    r = math.sqrt(p)
+    
+    if r > mesafe:
+        return True
+    else:
+        return False
 
 def yer_degistirme(eskipose, pose):
     
@@ -288,6 +351,7 @@ def send_help(self):
     
     
 def track_human_center(threadName, self, humanx, humany):
+    print "track"
     if(120-humany) == 0:
         yonx = 0
     elif (120-humany) < 0:
@@ -415,6 +479,107 @@ def distBul (wi, hi):
         dist = 4.0
     
     return dist
+
+def gobackto_point(threadName, self, px, py, pz):
+    completed = False
+    self.goback = True
+    print "goback"
+    #twist = Twist()
+
+    while not completed:
+        if self.pose != None:
+            x = self.pose.x
+            y = self.pose.y
+            z = self.pose.z
+
+            # Değerlendir
+            p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
+            #print(p)
+            r = math.sqrt(p)
+            if r < 0.5:
+                completed = True
+                self.goback = False
+                self.takip = False
+                return True
+            #print(r)
+            
+            if px-x == 0:
+                yonx = 0
+            elif px-x < 0:
+                yonx = -1
+            else:
+                yonx = 1
+            
+            if py-y == 0:
+                yony = 0
+            elif py-y < 0:
+                yony = -1
+            else:
+                yony = 1
+            
+            if pz-z == 0:
+                yonz = 0
+            elif pz-z < 0:
+                yonz = -1
+            else:
+                yonz = 1
+            
+            farkx = abs(px-x)
+            farky = abs(py-y)
+            farkz = abs(pz-z)
+            
+            if self.bekle == 0:
+                if(farkx < 0.1):
+                    self.twist.linear.x = 0.0 * yonx
+                elif(farkx < 0.5):
+                    self.twist.linear.x = 0.1 * yonx
+                elif(farkx < 1):
+                    self.twist.linear.x = 0.5 * yonx
+                elif(farkx > 1):
+                    self.twist.linear.x = 1.0 * yonx
+                    
+                if(farky < 0.1):
+                    self.twist.linear.y = 0.0 * yony
+                elif(farky < 0.5):
+                    self.twist.linear.y = 0.1 * yony
+                elif(farky > 0.5):
+                    self.twist.linear.y = 1.0 * yony
+                elif(farky > 1):
+                    self.twist.linear.y = 1.0 * yony
+                    
+                if(farkz < 0.1):
+                    self.twist.linear.z = 0.0 * yonz
+                elif(farkz < 0.5):
+                    self.twist.linear.z = 0.1 * yonz
+                elif(farkz > 0.5):
+                    self.twist.linear.z = 1.0 * yonz
+                elif(farkz > 1):
+                    self.twist.linear.z = 1.0 * yonz
+            elif self.bekle == 1:
+                self.twist.linear.x = 0.1 * yonx
+                self.twist.linear.y = 0.1 * yony
+                self.twist.linear.z = 0.1 * yonz
+                if(farkx < 0.1):
+                    self.twist.linear.x = 0.0 * yonx
+                if(farky < 0.1):
+                    self.twist.linear.y = 0.0 * yony
+                if(farkz < 0.1):
+                    self.twist.linear.z = 0.0 * yonz
+                self.cmd.publish(self.twist)
+                self.rate.sleep()                
+                
+            self.twist.angular.x = 0.0
+            self.twist.angular.y = 0.0 
+            self.twist.angular.z = 0.0
+                
+            # Bir şey yap
+            self.cmd.publish(self.twist)
+            self.rate.sleep()
+        else:
+            pass
+    self.goback = False
+    self.takip = False
+    return True
     
 def main(name, sx, sy, sz):
     #rospy.init_node("odometry_check")
@@ -426,8 +591,9 @@ def main(name, sx, sy, sz):
     #rospy.init_node('robot_controller')
     robot = Robot(name)
 
-    robot.goto_point(float(sx), float(sy), float(sz))
-
+    hedef = robot.goto_point(float(sx), float(sy), float(sz))
+    if hedef == True:
+        print "hedefe varildi."
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
