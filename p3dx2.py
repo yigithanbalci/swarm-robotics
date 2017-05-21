@@ -11,6 +11,10 @@ from time import sleep
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import radians
+from sensor_msgs.msg import CompressedImage
+
+import numpy as np
+import cv2
 
 class Robot():
     def __init__(self, name):
@@ -20,8 +24,18 @@ class Robot():
         self.name = name
         self.odom = rospy.Subscriber("/" + name + "/odom", Odometry, self.odom_callback)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
+        self.cam = rospy.Subscriber("/" + name + "/front_camera/image_raw/compressed", CompressedImage, self.cam_callback)
         self.twist = Twist()
         self.rate = rospy.Rate(10)
+        
+    def cam_callback(self, cam_data):        
+        np_arr = np.fromstring(cam_data.data, np.uint8)
+        image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
+        
+        cv2.namedWindow('p3dx2', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('p3dx2', 320,240)
+        cv2.imshow(self.name, image_np)
+        cv2.waitKey(2)
     
     def odom_callback(self, data):
         position = data.pose.pose.position
@@ -117,29 +131,27 @@ class Robot():
                 if dist > 5:
                     self.twist.linear.x = 1.0   
                     self.cmd.publish(self.twist)
-                elif dist > 0.10:
+                #elif dist > 0.10:
+                elif dist > 2.5:
                     self.twist.linear.x = 0.1
                     self.cmd.publish(self.twist)
-                else:
+                elif dist <= 2.5:
                     completed = True
-                    self.stop()
                 
                 self.rate.sleep()
             else:
                 pass
 
     def control_help(self):
-            while(True):
-                try:
-                    fo = open("/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "r")
-                    filestring = fo.readline()
-                    if (filestring != None):
-                        px, py, pz = filestring.split()
+        #normalde tcp/ip uzerinden port dinlemesi gerekli.
+        #txt kullanımı nedeniyle son hedeften sonra bug olusabiliyor.
+        while(True):
+            with open('/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt') as openfileobject:
+                for line in openfileobject:
+                    if line != None and line != '\n':
+                        print line
+                        px, py, pz = line.split()
                         self.goto_point(float(px), float(py), float(pz))
-                        #print float(px), float(py), float(pz)
-                    fo.close()
-                except:
-                    pass
         
 def return_field(x, y):
     if (x > 0 and y > 0):

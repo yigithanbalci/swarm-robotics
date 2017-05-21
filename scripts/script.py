@@ -17,6 +17,8 @@ import os, time
 
 import numpy as np
 import cv2
+from __builtin__ import float
+from cmath import cos
 
 class Robot():
     def __init__(self, name):
@@ -28,6 +30,7 @@ class Robot():
         self.takipbirakmaani = None
         self.goback = False
         self.takipbirakmapose = None
+        self.insanpose = None
         self.insan = 0
         self.bekle = 0
         self.takip = False
@@ -80,7 +83,7 @@ class Robot():
             orientation.w,
             )
         self.euler = tf.transformations.euler_from_quaternion(self.orient)
-        #print self.euler
+        #print self.euler[2]
 
     def goto_point(self, px, py, pz):
         completed = False
@@ -247,13 +250,13 @@ def hog_human_detection(self, img):
         elif self.takipbirakmapose == None:
             takip = True
         if takip == True:
-            send_help(self)
             self.insan = 1
             self.bekle = 1
             self.takip = True
             pix = (160-(x+(w/2)))
             pix2 = (120-(y+(h/2)))
             print str(pix2) + time.strftime("%c")  
+            dist = distBul((x+(w/2)), (y+(h/2)))
             if self.ilkgorus == True:
                 #time.sleep(2)
                 self.ilkgoruspose = self.pose
@@ -276,7 +279,7 @@ def hog_human_detection(self, img):
                             elif yerdegistirme == False:
                                 print "aynı"
                                 if self.goback == False:
-                                    thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0))
+                                    thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0, dist))
                                 print "aynigo"
                                 self.takipbirakmapose = self.pose
                                 self.takipbirakmaani = time.time()
@@ -337,20 +340,74 @@ def yer_degistirme(eskipose, pose):
         return True
     else:
         return False
-
-def send_help(self):
+    
+def return_field(eu):
+    if eu > 0.0 and eu < 1.57:
+        return 1
+    elif eu > 1.57 and eu < 3.14:
+        return 2
+    elif eu > -3.14 and eu < -1.57:
+        return 3
+    elif eu > -1.57 and eu < 0.0:
+        return 4
+    elif eu == 0.0:
+        return 5
+    elif eu == 1.57:
+        return 6
+    elif eu == -1.57:
+        return 8
+    elif eu == 3.14:
+        return 7
+    elif eu == -3.14:
+        return 7
+    
+def send_help(threadName, self, dist):
     if self.pose != None:
         x = self.pose.x
         y = self.pose.y
         z = self.pose.z
+    eu = self.euler[2]
+    eus = format(eu, '.2f')
+    eu = float(eus)
+    self.insanpose = self.pose
+    
+    self.insanpose.x = self.pose.x + (math.cos(eu) * dist)
+    self.insanpose.y = self.pose.y + (math.sin(eu) * dist)
+    self.insanpose.z = 0
+    
     try:
-        fo = open("/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "a")
-        filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
-        fo.write(filestring)
-        fo.close()
+        if control_help(self) is True:
+            fo = open("/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt", "a")
+            filestring = "\n%.10f %.10f %.10f" % ( (x), (y), (z))
+            fo.write(filestring)
+            fo.close()
+        else:
+            pass
     except:
         pass
     
+def control_help(self):
+    if self.insanpose != None:
+        ax = self.insanpose.x
+        ay = self.insanpose.y
+        az = self.insanpose.z
+    rvalue = True
+        
+    with open('/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt') as openfileobject:
+        for line in openfileobject:
+            if line != None and line != '\n':
+                px, py, pz = line.split()
+                x = float(px)
+                y = float(py)
+                z = float(pz)
+                
+                p = (abs(ax-x)**2) + (abs(ay-y)**2) + (abs(az-z)**2)
+                #print(p)
+                r = math.sqrt(p)
+                print r
+                if r < 1:
+                    rvalue = False
+    return rvalue
     
 def track_human_center(threadName, self, humanx, humany):
     print "track"
@@ -486,11 +543,12 @@ def distBul (wi, hi):
     
     return dist
 
-def gobackto_point(threadName, self, px, py, pz):
+def gobackto_point(threadName, self, px, py, pz, dist):
     completed = False
     self.goback = True
     print "goback"
     #twist = Twist()
+    thread.start_new_thread(send_help, ("sendHelpThread", self, dist))
 
     while not completed:
         if self.pose != None:
