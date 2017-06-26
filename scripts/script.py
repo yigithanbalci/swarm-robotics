@@ -41,6 +41,7 @@ class Robot():
         self.eskipose = None
         self.oldlaser = Laser()
         self.newlaser = Laser()
+        self.lasertime = time.time()
         self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback, queue_size=10)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
         self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback, queue_size=10)
@@ -56,7 +57,6 @@ class Robot():
     def laser_callback(self, laser_data):
         self.laser = laser_data
         min = 35 
-        
         angle_min = self.laser.angle_min
         angle_max = self.laser.angle_max
         angle_increment = self.laser.angle_increment
@@ -72,51 +72,62 @@ class Robot():
         
         index_min_int = int(math.ceil(index_min))
         index_max_int = int(math.ceil(index_max))
+    
         
-        if self.newlaser != None:
-            self.oldlaser = self.newlaser
+        if time.time() - self.lasertime >= 1:    
+            if self.newlaser.check_notnone() :
+                if self.newlaser.check_notnone() and self.oldlaser.check_notnone(): 
+                    yerdegistirme = (abs(self.newlaser.x - self.oldlaser.x)**2) + (abs(self.newlaser.y - self.oldlaser.y)**2)
+                    yerdegistirme = math.sqrt(yerdegistirme)
+                    yerdegistirme = float(format(yerdegistirme, '.3f'))
+                    print yerdegistirme 
+                
+                self.oldlaser.equalize_objects(self.newlaser)
+            self.lasertime = time.time()
         
-        minindex = index_max_int
-        maxindex = index_min_int
+        if self.oldlaser is self.newlaser:
+            print "aynı"
         
         i = index_min_int
+        #print index_min_int
         while i<=index_max_int:
             if self.laser.ranges[i] > 1:
-                if self.laser.ranges[i] <= min :
-                    if minindex > i:
-                        minindex = i
-                    if maxindex < i:
-                        maxindex = i
                     if self.laser.ranges[i] < min:
                         min  = self.laser.ranges[i]
             i = i+1
             
         i = index_min_int
         minindex = index_max_int
+        maxindex = index_min_int
+        
         while i <= index_max_int:
             if self.laser.ranges[i] > 1:
                 if self.laser.ranges[i] <= min :
                     if minindex > i:
                         minindex = i
-                        i = index_max_int + 1
+                        maxindex = i + 3
                         break
+                    if maxindex < i:
+                        maxindex = i
+                        minindex = i - 3                        
             i = i+1
         self.newlaser.mindist = min
         self.newlaser.maxindex = maxindex
         self.newlaser.minindex = minindex
-        print "indexes: " + str(minindex) + " " + str(maxindex) + " " + str(self.laser.ranges[minindex])
+        #print "indexes: " + str(minindex) + " " + str(maxindex) + " " + str(self.laser.ranges[minindex])
         self.newlaser.angle = ((((maxindex + minindex) / 2)*angle_increment) + angle_min)
         #self.newlaser.angle = math.ceil(self.newlaser.angle / (math.pi/180)) *(math.pi/180)
 
         #print "asd: " + str(minindex)         
         #x ve ye ye olan acilarini hesapladik..
         angle = float(format(self.newlaser.angle, '.3f')) + float(format(self.euler[2], '.3f'))
+        angle =  angle * (-1)
         self.newlaser.angle = angle
         #print angle
         x = math.cos(angle) * float(format(self.newlaser.mindist, '.3f'))
         y = math.sin(angle) * float(format(self.newlaser.mindist, '.3f'))
-        rx = float(format(x, '.1f')) + float(format(self.pose.x, '.1f'))
-        ry = float(format(y, '.1f')) + float(format(self.pose.y, '.1f'))
+        rx = float(format(x, '.3f')) + float(format(self.pose.x, '.3f'))
+        ry = float(format(y, '.3f')) + float(format(self.pose.y, '.3f'))
         #konum bilgisi virgulden sonra bir hane aliniyor..
         self.newlaser.x = rx
         self.newlaser.y = ry
@@ -299,7 +310,19 @@ class Laser():
         self.angle = None
         self.x = None
         self.y = None
-
+    def check_notnone(self):
+        if self.mindist == None and self.angle == None and self.maxindex == None and self.minindex == None and self.x == None and self.y == None:
+            return False
+        else:
+            return True
+    def equalize_objects(self, stranger):
+        self.mindist = stranger.mindist
+        self.minindex = stranger.minindex
+        self.maxindex = stranger.maxindex
+        self.angle = stranger.angle
+        self.x = stranger.x
+        self.y = stranger.y
+        
 def inside(r, q):
     rx, ry, rw, rh = r
     qx, qy, qw, qh = q
