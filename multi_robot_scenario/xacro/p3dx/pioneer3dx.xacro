@@ -3,6 +3,7 @@
     
   <!-- Import Rviz colors -->
   <xacro:include filename="$(find gazebo_plugins)/test/multi_robot_scenario/xacro/materials.xacro" />
+
   
   <!-- Import robot -->
   <xacro:include filename="$(find quadro_demo)/src/swarm-robotics/multi_robot_scenario/xacro/p3dx/pioneer3dx_body.xacro"/>

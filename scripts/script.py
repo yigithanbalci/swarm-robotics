@@ -10,6 +10,7 @@ from time import sleep
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import LaserScan
 
 import math
 import sys
@@ -19,6 +20,7 @@ import numpy as np
 import cv2
 from __builtin__ import float
 from cmath import cos
+
 
 class Robot():
     def __init__(self, name):
@@ -37,20 +39,95 @@ class Robot():
         self.ilkgorus = True
         self.name = name
         self.eskipose = None
-        self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback)
+        self.oldlaser = Laser()
+        self.newlaser = Laser()
+        self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback, queue_size=10)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
-        self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback)
+        self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback, queue_size=10)
+        self.lsr = rospy.Subscriber("/" + name + "/scan", LaserScan, self.laser_callback, queue_size=10)
         self.twist = Twist()
+        self.laser = LaserScan()
         self.filepath = "/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/camera" + "/" + self.name
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
         self.rate = rospy.Rate(10)
-
         
 
+        
+    def laser_callback(self, laser_data):
+        self.laser = laser_data
+        min = 35 
+        
+        angle_min = self.laser.angle_min
+        angle_max = self.laser.angle_max
+        angle_increment = self.laser.angle_increment
+        
+        search_angle_min = -45 * (math.pi/180)
+        search_angle_max = 45 * (math.pi/180)
+        
+        s_angle_min = search_angle_min - angle_min
+        s_angle_max = search_angle_max - angle_min
+        
+        index_min = s_angle_min / angle_increment
+        index_max = s_angle_max / angle_increment 
+        
+        index_min_int = int(math.ceil(index_min))
+        index_max_int = int(math.ceil(index_max))
+        
+        if self.newlaser != None:
+            self.oldlaser = self.newlaser
+        
+        minindex = index_max_int
+        maxindex = index_min_int
+        
+        i = index_min_int
+        while i<=index_max_int:
+            if self.laser.ranges[i] > 1:
+                if self.laser.ranges[i] <= min :
+                    if minindex > i:
+                        minindex = i
+                    if maxindex < i:
+                        maxindex = i
+                    if self.laser.ranges[i] < min:
+                        min  = self.laser.ranges[i]
+            i = i+1
+            
+        i = index_min_int
+        minindex = index_max_int
+        while i <= index_max_int:
+            if self.laser.ranges[i] > 1:
+                if self.laser.ranges[i] <= min :
+                    if minindex > i:
+                        minindex = i
+                        i = index_max_int + 1
+                        break
+            i = i+1
+        self.newlaser.mindist = min
+        self.newlaser.maxindex = maxindex
+        self.newlaser.minindex = minindex
+        print "indexes: " + str(minindex) + " " + str(maxindex) + " " + str(self.laser.ranges[minindex])
+        self.newlaser.angle = ((((maxindex + minindex) / 2)*angle_increment) + angle_min)
+        #self.newlaser.angle = math.ceil(self.newlaser.angle / (math.pi/180)) *(math.pi/180)
+
+        #print "asd: " + str(minindex)         
+        #x ve ye ye olan acilarini hesapladik..
+        angle = float(format(self.newlaser.angle, '.3f')) + float(format(self.euler[2], '.3f'))
+        self.newlaser.angle = angle
+        #print angle
+        x = math.cos(angle) * float(format(self.newlaser.mindist, '.3f'))
+        y = math.sin(angle) * float(format(self.newlaser.mindist, '.3f'))
+        rx = float(format(x, '.1f')) + float(format(self.pose.x, '.1f'))
+        ry = float(format(y, '.1f')) + float(format(self.pose.y, '.1f'))
+        #konum bilgisi virgulden sonra bir hane aliniyor..
+        self.newlaser.x = rx
+        self.newlaser.y = ry
+        #print str(self.newlaser.mindist) + " " + str(rx) + " " + str(ry)
+        #print str(self.newlaser.x - self.oldlaser.x) + " " + str(self.newlaser.y - self.oldlaser.y)
+        #print str(self.newlaser.y) + " " + str(self.oldlaser.y)
+        
     def cam_callback(self, cam_data):
-        #print("received data type: " + cam_data.format)
+        ##print("received data type: " + cam_data.format)
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
-                
+
         #converts image to cv2
         np_arr = np.fromstring(cam_data.data, np.uint8)
         image_np = cv2.imdecode(np_arr, cv2.CV_LOAD_IMAGE_COLOR)
@@ -83,7 +160,7 @@ class Robot():
             orientation.w,
             )
         self.euler = tf.transformations.euler_from_quaternion(self.orient)
-        #print self.euler[2]
+        ##print self.euler[2]
 
     def goto_point(self, px, py, pz):
         completed = False
@@ -98,12 +175,12 @@ class Robot():
 
                 # Değerlendir
                 p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
-                #print(p)
+                ##print(p)
                 r = math.sqrt(p)
                 if r < 0.5:
                     completed = True
                     
-                #print(r)
+                ##print(r)
                 
                 if px-x == 0:
                     yonx = 0
@@ -130,7 +207,7 @@ class Robot():
                 xangle = math.acos((px-x)/r)
                 yangle = math.acos((py-y)/r)
                 zangle = math.acos((pz-z)/r)
-                #print(r)
+                ##print(r)
                 if(r < 0.1):                
                     self.twist.linear.x = 0.0
                     self.twist.linear.y = 0.0
@@ -193,9 +270,9 @@ class Robot():
                     self.rate.sleep()
                     #time.sleep(2)
                     while self.takip:
-                        #print "gotoloop"
+                        ##print "gotoloop"
                         pass
-                    print "gotopoint"
+                    #print "gotopoint"
                     
                 self.twist.angular.x = 0.0
                 self.twist.angular.y = 0.0 
@@ -214,6 +291,14 @@ class Robot():
             else:
                 pass
         return True
+class Laser():
+    def __init__(self):
+        self.mindist = None
+        self.minindex = None
+        self.maxindex = None
+        self.angle = None
+        self.x = None
+        self.y = None
 
 def inside(r, q):
     rx, ry, rw, rh = r
@@ -255,7 +340,7 @@ def hog_human_detection(self, img):
             self.takip = True
             pix = (160-(x+(w/2)))
             pix2 = (120-(y+(h/2)))
-            print str(pix2) + time.strftime("%c")  
+            #print str(pix2) + time.strftime("%c")  
             dist = distBul((x+(w/2)), (y+(h/2)))
             if self.ilkgorus == True:
                 #time.sleep(2)
@@ -275,12 +360,13 @@ def hog_human_detection(self, img):
                         
                         if farkx < 25 and farky < 75 :
                             if yerdegistirme == True:
-                                print "farklı"
+                                #print "farklı"
+                                pass
                             elif yerdegistirme == False:
-                                print "aynı"
+                                #print "aynı"
                                 if self.goback == False:
                                     thread.start_new_thread(gobackto_point, ("GoBackThread", self, self.ilkgoruspose.x, self.ilkgoruspose.y, self.ilkgoruspose.z + 2.0, dist))
-                                print "aynigo"
+                                #print "aynigo"
                                 self.takipbirakmapose = self.pose
                                 self.takipbirakmaani = time.time()
                                 return img
@@ -294,6 +380,10 @@ def hog_human_detection(self, img):
         self.bekle = 0
         self.insan = 0
         self.ilkgorus = True
+
+	#delete if not workin' 
+   	#if self.twist.linear.x == 0 and self.twist.linear.y == 0 and self.twist.linear.z == 0:
+	   # self.takip = False
     draw_detections(img,found)
     #cv2.imshow('feed',img)
     #cv2.destroyAllWindows()
@@ -402,15 +492,15 @@ def control_help(self):
                 z = float(pz)
                 
                 p = (abs(ax-x)**2) + (abs(ay-y)**2) + (abs(az-z)**2)
-                #print(p)
+                ##print(p)
                 r = math.sqrt(p)
-                print r
+                #print r
                 if r < 1:
                     rvalue = False
     return rvalue
     
 def track_human_center(threadName, self, humanx, humany):
-    print "track"
+    #print "track"
     if(120-humany) == 0:
         yonx = 0
     elif (120-humany) < 0:
@@ -489,7 +579,7 @@ def track_human_center(threadName, self, humanx, humany):
         hizy = 0.1
     elif farky < 10:
         hizy = 0.2
-    elif farky > 60:
+    elif farky > 50:
         hizy = 0.2
     else:
         hizy = 0.0
@@ -546,7 +636,7 @@ def distBul (wi, hi):
 def gobackto_point(threadName, self, px, py, pz, dist):
     completed = False
     self.goback = True
-    print "goback"
+    #print "goback"
     #twist = Twist()
     thread.start_new_thread(send_help, ("sendHelpThread", self, dist))
 
@@ -558,14 +648,14 @@ def gobackto_point(threadName, self, px, py, pz, dist):
 
             # Değerlendir
             p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
-            #print(p)
+            ##print(p)
             r = math.sqrt(p)
             if r < 0.5:
                 completed = True
                 self.goback = False
                 self.takip = False
                 return True
-            #print(r)
+            ##print(r)
             
             if px-x == 0:
                 yonx = 0
@@ -657,7 +747,8 @@ def main(name, sx, sy, sz):
 
     hedef = robot.goto_point(float(sx), float(sy), float(sz))
     if hedef == True:
-        print "hedefe varildi."
+        #print "hedefe varildi."
+        pass
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
