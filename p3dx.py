@@ -117,7 +117,7 @@ class Robot():
                 if dist > 5:
                     self.twist.linear.x = 1.0   
                     self.cmd.publish(self.twist)
-                elif dist > 0.70:
+                elif dist > 0.20:
                     self.twist.linear.x = 0.1
                     self.cmd.publish(self.twist)
                 else:
