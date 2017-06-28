@@ -46,6 +46,7 @@ class Robot():
         self.kacmazamani = None
         self.hedefyerdegisimi = None
         self.target = Target()
+        self.insanalgilandi = False
         self.odom = rospy.Subscriber("/" + name + "/ground_truth/state", Odometry, self.odom_callback, queue_size=10)
         self.cmd  = rospy.Publisher("/" + name + '/cmd_vel', Twist, queue_size=10)
         self.cam = rospy.Subscriber("/" + name + "/front_cam/camera/image/compressed", CompressedImage, self.cam_callback, queue_size=10)
@@ -365,6 +366,7 @@ def hog_human_detection(self, img):
         foundCounter = foundCounter + 1
             
     if(foundCounter != 0):
+        self.insanalgilandi = True
         if self.takip2 == False:
             self.takip2 = True
             self.takip = True
@@ -372,7 +374,8 @@ def hog_human_detection(self, img):
             thread.start_new_thread(insan_takibi, ("TakipThread", self))
         #eski algoritma asagida takipbirakmapose ile baslayan
     
-    #else:
+    else:
+        self.insanalgilandi = False
         #self.takip = False
         '''
         self.bekle = 0
@@ -400,16 +403,22 @@ def insan_takibi(threadName, self):
             eus = format(eu, '.2f')
             eu = float(eus)
             print "dongu"
-            x = self.newlaser.x + (math.cos(eu) * 1.5)
-            y = self.newlaser.y + (math.sin(eu) * 1.5)
+            x = self.newlaser.x + (math.cos(eu) * 0.5)
+            y = self.newlaser.y + (math.sin(eu) * 0.5)
+            #self.newlaser.angle self.newlaser.mindist ile y deki degisimi bul bunu bizim açımıza göre gerçeğe çevir
+            #aynı zamanda xdeki değişimi bul.  
                 
             #comp = goto_point(self,self.newlaser.x + xcarpan, self.newlaser.y + ycarpan, 1.8)
-            comp = goto_point(self,x, y, 1.8)
+            comp = goto_point(self,True, x, y, 1.8)
 
             if comp == True and self.hedefyerdegisimi < 0.1:
                 completed = True
                 break
+            '''if self.insanalgilandi == False:
+                completed = True
+                break'''
             
+    #self.insanalgilandi degiskenimiz var gerekirse kullan.
     if self.hedefyerdegisimi < 0.1:        
         eu = self.euler[2]
         eus = format(eu, '.2f')
@@ -418,7 +427,7 @@ def insan_takibi(threadName, self):
         x = self.newlaser.x + (math.cos(eu) * self.newlaser.mindist)
         y = self.newlaser.y + (math.sin(eu) * self.newlaser.mindist)
         print "notdongu"
-        cmp = goto_point(self,x, y, 3.0)
+        cmp = goto_point(self,False, x, y, 3.0)
         pass
     '''eu = self.euler[2]
     eus = format(eu, '.2f')
@@ -437,7 +446,7 @@ def noktalar_arasi_yon(a, b):
         return 1
     else:
         return -1
-def goto_point(self, px, py, pz):
+def goto_point(self,insantakip, px, py, pz):
     completed = False
 
     while not completed:
@@ -445,7 +454,18 @@ def goto_point(self, px, py, pz):
             x = self.pose.x
             y = self.pose.y
             z = self.pose.z
-
+            if self.insanalgilandi == False and insantakip == True:
+                return True
+            if insantakip:
+                eu = self.euler[2]
+                eus = format(eu, '.2f')
+                eu = float(eus)
+                print "dongu2"
+                px = self.newlaser.x + (math.cos(eu) * 0.5)
+                py = self.newlaser.y + (math.sin(eu) * 0.5)
+            else:
+               pass
+           
             # Değerlendir
             p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
             ##print(p)
