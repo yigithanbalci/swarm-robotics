@@ -409,7 +409,7 @@ def insan_takibi(threadName, self):
             #aynı zamanda xdeki değişimi bul.  
                 
             #comp = goto_point(self,self.newlaser.x + xcarpan, self.newlaser.y + ycarpan, 1.8)
-            comp = goto_point(self,True, x, y, 1.8)
+            comp = goto_point(self,True, x, y, 1.8, self.newlaser.angle)
 
             if comp == True and self.hedefyerdegisimi < 0.1:
                 completed = True
@@ -427,7 +427,7 @@ def insan_takibi(threadName, self):
         x = self.newlaser.x + (math.cos(eu) * self.newlaser.mindist)
         y = self.newlaser.y + (math.sin(eu) * self.newlaser.mindist)
         print "notdongu"
-        cmp = goto_point(self,False, x, y, 3.0)
+        cmp = goto_point(self,False, x, y, 3.0, 0.0)
         pass
     '''eu = self.euler[2]
     eus = format(eu, '.2f')
@@ -446,7 +446,7 @@ def noktalar_arasi_yon(a, b):
         return 1
     else:
         return -1
-def goto_point(self,insantakip, px, py, pz):
+def goto_point(self,insantakip, px, py, pz, aci):
     completed = False
 
     while not completed:
@@ -463,6 +463,7 @@ def goto_point(self,insantakip, px, py, pz):
                 print "dongu2"
                 px = self.newlaser.x + (math.cos(eu) * 0.5)
                 py = self.newlaser.y + (math.sin(eu) * 0.5)
+                aci = self.newlaser.angle
             else:
                pass
            
@@ -541,12 +542,15 @@ def goto_point(self,insantakip, px, py, pz):
                     self.twist.linear.y = 0.0 * yony
                 if(farkz < 0.1):
                     self.twist.linear.z = 0.0 * yonz
-                self.cmd.publish(self.twist)
-                self.rate.sleep()
+                #self.cmd.publish(self.twist)
+                #self.rate.sleep()
                 
             self.twist.angular.x = 0.0
             self.twist.angular.y = 0.0 
             self.twist.angular.z = 0.0
+            
+            if insantakip:
+                self.twist.angular.z = aci * 1.0
             
             if completed:
                 self.twist.linear.x = 0.0
