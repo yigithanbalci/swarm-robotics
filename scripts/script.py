@@ -405,8 +405,20 @@ def insan_takibi(threadName, self):
             eus = format(eu, '.2f')
             eu = float(eus)
             print "dongu"
-            x = self.newlaser.x + (math.cos(eu) * 0.5)
-            y = self.newlaser.y + (math.sin(eu) * 0.5)
+            #x = self.newlaser.x + (math.cos(eu) * 0.5)
+            #y = self.newlaser.y + (math.sin(eu) * 0.5)
+            
+            todisttohuman = self.newlaser.mindist - 0.5
+            
+            ix = math.cos(self.newlaser.betwangle) * todisttohuman
+            iy = math.sin(self.newlaser.betwangle) * todisttohuman
+            
+            sx = (math.cos(eu) * ix) + (math.sin(eu + math.radians(90)) * iy)
+            sy = (math.sin(eu) * ix) + (math.cos(eu + math.radians(90)) * iy)
+            
+            x = sx + self.pose.x
+            y = sy + self.pose.y
+            
             #self.newlaser.angle self.newlaser.mindist ile y deki degisimi bul bunu bizim açımıza göre gerçeğe çevir
             #aynı zamanda xdeki değişimi bul.  
                 
@@ -463,8 +475,20 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 eus = format(eu, '.2f')
                 eu = float(eus)
                 print "dongu2"
-                px = self.newlaser.x + (math.cos(eu) * 0.5)
-                py = self.newlaser.y + (math.sin(eu) * 0.5)
+                #px = self.newlaser.x + (math.cos(eu) * 0.5)
+                #py = self.newlaser.y + (math.sin(eu) * 0.5)
+                
+                todisttohuman = self.newlaser.mindist - 0.5
+                
+                ix = math.cos(self.newlaser.betwangle) * todisttohuman
+                iy = math.sin(self.newlaser.betwangle) * todisttohuman
+                
+                sx = (math.cos(eu) * ix) + (math.sin(eu + math.radians(90)) * iy)
+                sy = (math.sin(eu) * ix) + (math.cos(eu + math.radians(90)) * iy)
+                
+                px = sx + self.pose.x
+                py = sy + self.pose.y
+                
                 aci = self.newlaser.betwangle
             else:
                pass
