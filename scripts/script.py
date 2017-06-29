@@ -123,11 +123,12 @@ class Robot():
         #print "indexes: " + str(minindex) + " " + str(maxindex) + " " + str(self.laser.ranges[minindex])
         self.newlaser.angle = ((((maxindex + minindex) / 2)*angle_increment) + angle_min)
         #self.newlaser.angle = math.ceil(self.newlaser.angle / (math.pi/180)) *(math.pi/180)
-
+        self.newlaser.angle = self.newlaser.angle * (-1)
+        self.newlaser.betwangle = self.newlaser.angle
+        #print self.newlaser.betwangle
         #print "asd: " + str(minindex)         
         #x ve ye ye olan acilarini hesapladik..
         angle = float(format(self.newlaser.angle, '.3f')) + float(format(self.euler[2], '.3f'))
-        angle =  angle * (-1)
         self.newlaser.angle = angle
         #print angle
         x = math.cos(angle) * float(format(self.newlaser.mindist, '.3f'))
@@ -319,10 +320,11 @@ class Laser():
         self.minindex = None
         self.maxindex = None
         self.angle = None
+        self.betwangle = None
         self.x = None
         self.y = None
     def check_notnone(self):
-        if self.mindist == None and self.angle == None and self.maxindex == None and self.minindex == None and self.x == None and self.y == None:
+        if self.mindist == None and self.angle == None and self.maxindex == None and self.minindex == None and self.x == None and self.y == None and self.betwangle == None:
             return False
         else:
             return True
@@ -409,7 +411,7 @@ def insan_takibi(threadName, self):
             #aynı zamanda xdeki değişimi bul.  
                 
             #comp = goto_point(self,self.newlaser.x + xcarpan, self.newlaser.y + ycarpan, 1.8)
-            comp = goto_point(self,True, x, y, 1.8, self.newlaser.angle)
+            comp = goto_point(self,True, x, y, 1.8, self.newlaser.betwangle)
 
             if comp == True and self.hedefyerdegisimi < 0.1:
                 completed = True
@@ -463,7 +465,7 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 print "dongu2"
                 px = self.newlaser.x + (math.cos(eu) * 0.5)
                 py = self.newlaser.y + (math.sin(eu) * 0.5)
-                aci = self.newlaser.angle
+                aci = self.newlaser.betwangle
             else:
                pass
            
@@ -550,12 +552,35 @@ def goto_point(self,insantakip, px, py, pz, aci):
             self.twist.angular.z = 0.0
             
             if insantakip:
-                self.twist.angular.z = aci * 1.0
+                carpan = 0
+                if aci < 0:
+                    carpan = -1
+                elif aci > 0:
+                    carpan = 1
+                else:
+                    carpan = 0
+                    
+                
+                if abs(aci) < math.radians(15):
+                    self.twist.angular.z = 0.6 * carpan
+                elif abs(aci) < math.radians(30):
+                    self.twist.angular.z = 0.8 * carpan
+                elif abs(aci) < math.radians(45):
+                    self.twist.angular.z = 1.0 * carpan
+                elif abs(aci) < math.radians(60):
+                    self.twist.angular.z = 1.2 * carpan
+                elif abs(aci) < math.radians(75):
+                    self.twist.angular.z = 1.5 * carpan
+                elif abs(aci) < math.radians(90):
+                    self.twist.angular.z = 1.6 * carpan
+                else:
+                    self.twist.angular.z = 1.7 * carpan
             
             if completed:
                 self.twist.linear.x = 0.0
                 self.twist.linear.y = 0.0
                 self.twist.linear.z = 0.0
+                self.twist.angular.z = 0.0
         
             # Bir şey yap
             self.cmd.publish(self.twist)
