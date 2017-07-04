@@ -135,7 +135,7 @@ class Robot():
                     self.rotate_robot_2(yawangle)
 
                 if dist > 5:
-                    self.twist.linear.x = 1.0   
+                    self.twist.linear.x = 0.8   
                     self.cmd.publish(self.twist)
                 elif dist > 0.20:
                     self.twist.linear.x = 0.1

@@ -86,7 +86,7 @@ class Robot():
                     yerdegistirme = math.sqrt(yerdegistirme)
                     yerdegistirme = float(format(yerdegistirme, '.3f'))
                     self.hedefyerdegisimi = yerdegistirme
-                    print yerdegistirme 
+                   # print yerdegistirme 
                 
                 self.oldlaser.equalize_objects(self.newlaser)
             self.lasertime = time.time()
@@ -192,6 +192,11 @@ class Robot():
                 x = self.pose.x
                 y = self.pose.y
                 z = self.pose.z
+                eu = 0.0
+                if self.euler != None:
+                    eu = self.euler[2]
+                    eus = format(eu, '.2f')
+                    eu = float(eus)
 
                 # Değerlendir
                 p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
@@ -296,8 +301,44 @@ class Robot():
                     
                 self.twist.angular.x = 0.0
                 self.twist.angular.y = 0.0 
-                self.twist.angular.z = 0.0
+                '''if abs(eu) > math.radians(90):
+                    self.twist.angular.z = (1.0 * abs(eu)) / math.pi
+                else:
+                '''
+                self.twist.angular.z = (1.7 * eu) / (math.pi * (-1))
                 
+                self.twist.linear.x = (self.twist.linear.x * math.cos(eu)) + (self.twist.linear.y * math.sin(eu))
+                self.twist.linear.y = (self.twist.linear.x * math.sin(eu)) + (self.twist.linear.y * math.cos(eu))
+                if self.newlaser.mindist <=2:
+                    self.twist.linear.z = 1.0
+                ''' aci = eu 
+                carpan = 0
+                if aci < 0:
+                    carpan = -1
+                elif aci > 0:
+                    carpan = 1
+                else:
+                    carpan = 0
+                    
+                
+                if abs(aci) <= math.radians(15):
+                    self.twist.angular.z = 0.0 * carpan
+                elif abs(aci) <= math.radians(30):
+                    self.twist.angular.z = 0.5 * carpan
+                elif abs(aci) <= math.radians(45):
+                    self.twist.angular.z = 0.8 * carpan
+                elif abs(aci) <= math.radians(60):
+                    self.twist.angular.z = 1.0 * carpan
+                elif abs(aci) <= math.radians(75):
+                    self.twist.angular.z = 1.3 * carpan
+                elif abs(aci) <= math.radians(90):
+                    self.twist.angular.z = 1.6 * carpan
+                elif abs(aci) > math.radians(90):
+                    self.twist.angular.z = 1.7 * carpan
+                '''
+                
+                #onunu don x ve y hizlari robota gore hizlar.
+
                 '''if self.takipbirakmapose != None:
                     insandanuzaklasma = insandan_uzaklasma(self.takipbirakmapose, self.pose, 5)
                     if insandanuzaklasma == True:
@@ -366,7 +407,9 @@ def hog_human_detection(self, img):
 
     for x, y, w, h in found:
         foundCounter = foundCounter + 1
+        #print str(x) + " " + str(y) + " " + str(w) + " "+ str(h) + " "
             
+    #print foundCounter
     if(foundCounter != 0):
         self.insanalgilandi = True
         if self.takip2 == False:
@@ -376,8 +419,10 @@ def hog_human_detection(self, img):
             thread.start_new_thread(insan_takibi, ("TakipThread", self))
         #eski algoritma asagida takipbirakmapose ile baslayan
     
-    else:
+    elif foundCounter == 0:
         self.insanalgilandi = False
+        self.takip2 = False
+        self.takip = False
         #self.takip = False
         '''
         self.bekle = 0
@@ -407,9 +452,16 @@ def insan_takibi(threadName, self):
             print "dongu"
             #x = self.newlaser.x + (math.cos(eu) * 0.5)
             #y = self.newlaser.y + (math.sin(eu) * 0.5)
-            
+            '''
             todisttohuman = self.newlaser.mindist - 0.5
             
+            x = math.cos(self.newlaser.angle) * float(format(todisttohuman, '.3f'))
+            y = math.sin(self.newlaser.angle) * float(format(todisttohuman, '.3f'))
+            x = float(format(x, '.3f')) + float(format(self.pose.x, '.3f'))
+            y = float(format(y, '.3f')) + float(format(self.pose.y, '.3f'))
+            '''
+            
+            '''
             ix = math.cos(self.newlaser.betwangle) * todisttohuman
             iy = math.sin(self.newlaser.betwangle) * todisttohuman
             
@@ -418,6 +470,12 @@ def insan_takibi(threadName, self):
             
             x = sx + self.pose.x
             y = sy + self.pose.y
+            '''
+            x = self.newlaser.x
+            y = self.newlaser.y
+            
+            x = x - (math.cos(self.newlaser.angle) * 1.0)
+            y = y - (math.sin(self.newlaser.angle) * 1.0)
             
             #self.newlaser.angle self.newlaser.mindist ile y deki degisimi bul bunu bizim açımıza göre gerçeğe çevir
             #aynı zamanda xdeki değişimi bul.  
@@ -427,10 +485,17 @@ def insan_takibi(threadName, self):
 
             if comp == True and self.hedefyerdegisimi < 0.1:
                 completed = True
-                break
+                self.takip = False
+                self.kacmazamani = time.time()
+                self.takip2 = False
+                return
             '''if self.insanalgilandi == False:
                 completed = True
-                break'''
+                self.takip = False
+                self.kacmazamani = time.time()
+                self.takip2 = False
+                return
+            '''
             
     #self.insanalgilandi degiskenimiz var gerekirse kullan.
     if self.hedefyerdegisimi < 0.1:        
@@ -442,7 +507,6 @@ def insan_takibi(threadName, self):
         y = self.newlaser.y + (math.sin(eu) * self.newlaser.mindist)
         print "notdongu"
         cmp = goto_point(self,False, x, y, 3.0, 0.0)
-        pass
     '''eu = self.euler[2]
     eus = format(eu, '.2f')
     eu = float(eus)
@@ -468,8 +532,9 @@ def goto_point(self,insantakip, px, py, pz, aci):
             x = self.pose.x
             y = self.pose.y
             z = self.pose.z
-            if self.insanalgilandi == False and insantakip == True:
+            '''if self.insanalgilandi == False and insantakip == True:
                 return True
+            '''
             if insantakip:
                 eu = self.euler[2]
                 eus = format(eu, '.2f')
@@ -477,7 +542,7 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 print "dongu2"
                 #px = self.newlaser.x + (math.cos(eu) * 0.5)
                 #py = self.newlaser.y + (math.sin(eu) * 0.5)
-                
+                ''' 
                 todisttohuman = self.newlaser.mindist - 0.5
                 
                 ix = math.cos(self.newlaser.betwangle) * todisttohuman
@@ -488,18 +553,39 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 
                 px = sx + self.pose.x
                 py = sy + self.pose.y
-                
+                '''
+                '''
+                todisttohuman = self.newlaser.mindist - 0.5
+            
+                x = math.cos(self.newlaser.angle) * float(format(todisttohuman, '.3f'))
+                y = math.sin(self.newlaser.angle) * float(format(todisttohuman, '.3f'))
+                px = float(format(x, '.3f')) + float(format(self.pose.x, '.3f'))
+                py = float(format(y, '.3f')) + float(format(self.pose.y, '.3f'))
+                '''
+                px = self.newlaser.x
+                py = self.newlaser.y
+                px = px - (math.cos(self.newlaser.angle) * 1.0)
+                py = py - (math.sin(self.newlaser.angle) * 1.0)
                 aci = self.newlaser.betwangle
             else:
                pass
            
+            print "gotopointinsan"
+            print self.newlaser.angle
             # Değerlendir
             p = (abs(px-x)**2) + (abs(py-y)**2) + (abs(pz-z)**2)
             ##print(p)
             r = math.sqrt(p)
-            if r < 1:
+            if r <= 1 or (self.hedefyerdegisimi < 0.1 and self.insanalgilandi == False):
                 completed = True
                 print "completed"
+                self.twist.linear.x = 0.0
+                self.twist.linear.y = 0.0
+                self.twist.linear.z = 0.0
+                self.twist.angular.z = 0.0
+        
+                self.cmd.publish(self.twist)
+                self.rate.sleep()
                 return True
             
             if px-x == 0:
@@ -528,31 +614,31 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 farky = abs(py-y)
                 farkz = abs(pz-z)
                 
-                if(farkx < 0.1):
+                if(farkx <= 0.1):
                     self.twist.linear.x = 0.0 * yonx
-                elif(farkx < 0.5):
+                elif(farkx <= 0.5):
                     self.twist.linear.x = 0.1 * yonx
                 elif(farkx < 1):
                     self.twist.linear.x = 0.5 * yonx
-                elif(farkx > 1):
+                elif(farkx >= 1):
                     self.twist.linear.x = 1.0 * yonx
                     
-                if(farky < 0.1):
+                if(farky <= 0.1):
                     self.twist.linear.y = 0.0 * yony
-                elif(farky < 0.5):
+                elif(farky <= 0.5):
                     self.twist.linear.y = 0.1 * yony
-                elif(farky > 0.5):
-                    self.twist.linear.y = 1.0 * yony
-                elif(farky > 1):
+                elif(farky < 1):
+                    self.twist.linear.y = 0.5 * yony
+                elif(farky >= 1):
                     self.twist.linear.y = 1.0 * yony
                     
-                if(farkz < 0.1):
+                if(farkz <= 0.1):
                     self.twist.linear.z = 0.0 * yonz
-                elif(farkz < 0.5):
+                elif(farkz <= 0.5):
                     self.twist.linear.z = 0.1 * yonz
-                elif(farkz > 0.5):
-                    self.twist.linear.z = 1.0 * yonz
-                elif(farkz > 1):
+                elif(farkz < 0.5):
+                    self.twist.linear.z = 0.5 * yonz
+                elif(farkz >= 1):
                     self.twist.linear.z = 1.0 * yonz
             elif self.bekle == 1:
                 farkx = abs(px-x)
@@ -569,11 +655,26 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 if(farkz < 0.1):
                     self.twist.linear.z = 0.0 * yonz
                 #self.cmd.publish(self.twist)
-                #self.rate.sleep()
+                self.rate.sleep()
                 
             self.twist.angular.x = 0.0
             self.twist.angular.y = 0.0 
             self.twist.angular.z = 0.0
+            
+            if(farkx <= 0.1):
+                self.twist.linear.x = 0.0 * yonz
+            else:
+                self.twist.linear.x = yonx * clamp(abs(farkx)/2, 0.1, 1.0)
+                
+            if(farky <= 0.1):
+                self.twist.linear.y = 0.0 * yonz
+            else:
+                self.twist.linear.y = yony * clamp(abs(farky)/2, 0.1, 1.0)
+                
+            if(farkz <= 0.1):
+                self.twist.linear.z = 0.0 * yonz        
+            else:
+                self.twist.linear.z = yonz * clamp(abs(farkz)/2, 0.1, 1.0)
             
             if insantakip:
                 carpan = 0
@@ -584,28 +685,39 @@ def goto_point(self,insantakip, px, py, pz, aci):
                 else:
                     carpan = 0
                     
-                
-                if abs(aci) < math.radians(15):
-                    self.twist.angular.z = 0.6 * carpan
-                elif abs(aci) < math.radians(30):
+                '''
+                if abs(aci) <= math.radians(15):
+                    self.twist.angular.z = 0.0 * carpan
+                elif abs(aci) <= math.radians(30):
+                    self.twist.angular.z = 0.5 * carpan
+                elif abs(aci) <= math.radians(45):
                     self.twist.angular.z = 0.8 * carpan
-                elif abs(aci) < math.radians(45):
+                elif abs(aci) <= math.radians(60):
                     self.twist.angular.z = 1.0 * carpan
-                elif abs(aci) < math.radians(60):
-                    self.twist.angular.z = 1.2 * carpan
-                elif abs(aci) < math.radians(75):
-                    self.twist.angular.z = 1.5 * carpan
-                elif abs(aci) < math.radians(90):
+                elif abs(aci) <= math.radians(75):
+                    self.twist.angular.z = 1.3 * carpan
+                elif abs(aci) <= math.radians(90):
                     self.twist.angular.z = 1.6 * carpan
-                else:
+                elif abs(aci) > math.radians(90):
                     self.twist.angular.z = 1.7 * carpan
-            
+                '''
+                    
+                #bu iyi 
+                '''self.twist.angular.z = (1.7 * self.newlaser.betwangle) / (math.radians(67.5))
+                self.twist.angular.z = clamp(self.twist.angular.z, -1.7, 1.7)
+                '''
+                    
+                self.twist.angular.z = (1.7 * self.newlaser.betwangle) / (math.radians(135))
+
             if completed:
                 self.twist.linear.x = 0.0
                 self.twist.linear.y = 0.0
                 self.twist.linear.z = 0.0
                 self.twist.angular.z = 0.0
         
+            self.twist.linear.x = (self.twist.linear.x * math.cos(eu)) + (self.twist.linear.y * math.sin(eu))
+            self.twist.linear.y = (self.twist.linear.x * math.sin(eu)) + (self.twist.linear.y * math.cos(eu))
+                
             # Bir şey yap
             self.cmd.publish(self.twist)
             self.rate.sleep()
@@ -613,6 +725,13 @@ def goto_point(self,insantakip, px, py, pz, aci):
             pass
     return True
 
+def clamp(n, minn, maxn):
+    if n < minn:
+        return minn
+    elif n > maxn:
+        return maxn
+    else:
+        return n
     
 def insandan_uzaklasma(eskipose, pose, mesafe):
     
