@@ -21,7 +21,6 @@ import cv2
 from __builtin__ import float
 from cmath import cos
 
-
 class Robot():
     def __init__(self, name):
         self.pose = None
@@ -57,15 +56,14 @@ class Robot():
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
         self.rate = rospy.Rate(10)
         
-
-        
     def laser_callback(self, laser_data):
         self.laser = laser_data
         min = 35 
         angle_min = self.laser.angle_min
         angle_max = self.laser.angle_max
         angle_increment = self.laser.angle_increment
-        
+        #laser angles could be set by calculation of human's angle using detected human from image.
+        #it can be more precise.
         search_angle_min = -45 * (math.pi/180)
         search_angle_max = 45 * (math.pi/180)
         
