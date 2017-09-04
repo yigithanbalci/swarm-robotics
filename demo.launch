@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-
 <launch>
-   
   <!-- Start Gazebo with wg world running in (max) realtime -->
   <include file="$(find quadro_demo)/src/swarm-robotics/launch/rolling_landscape_120m.launch"/>
    
@@ -18,14 +16,9 @@
 <!-- Start scripts with arguments -->			
    <node name="uav1script" ns="uav1" pkg="quadro_demo" type="script.py" args="uav1 45 -30 1.8"/>
     <node name="uav2script" ns="uav2" pkg="quadro_demo" type="script.py" args="uav2 45 -10 1.8"/> 
-
-<!-- <node name="uav3script" ns="uav3" pkg="quadro_demo" type="script.py" args="uav3 45 10 1.8"/>	
+   <node name="uav3script" ns="uav3" pkg="quadro_demo" type="script.py" args="uav3 45 10 1.8"/>	
     <node name="uav4script" ns="uav4" pkg="quadro_demo" type="script.py" args="uav4 45 30 1.8"/>
--->
+    <!-- one of the p3dxs is used to simulate human model, because gazebo 2.2 has no actor -->
     <node name="p3dxscript" ns="p3dx" pkg="quadro_demo" type="p3dx.py" args="p3dx"/>
-
     <node name="p3dxscript2" ns="p3dx2" pkg="quadro_demo" type="p3dx2.py" args="p3dx2"/>
-
-
-	
 </launch>
