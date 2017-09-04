@@ -49,10 +49,8 @@ class Robot():
             orientation.w,
             )
         self.euler = tf.transformations.euler_from_quaternion(self.orient)
-        #print self.euler
         
     def rotate_robot(self, yawangle):
-        #print yawangle
         eu = self.euler[2]
         zero = yawangle - eu
         multiplier = 1.0
@@ -67,14 +65,12 @@ class Robot():
         self.cmd.publish(self.twist)
         while not (eu < (yawangle + math.radians(5)) and  eu > (yawangle - math.radians(5))):
             if (abs(eu - yawangle)) > math.radians(15):
-                #self.twist.angular.z = math.radians(10) * ((eu - yawangle) / abs(eu - yawangle))
                 self.twist.angular.z = math.radians(15) * multiplier
                 self.cmd.publish(self.twist)
             elif abs(eu - yawangle) > math.radians(5):
                 self.twist.angular.z = math.radians(2) * multiplier
                 self.cmd.publish(self.twist)
             else:
-                #self.twist.angular.z = math.radians(1) * ((eu - yawangle) / abs(eu - yawangle))
                 self.twist.angular.z = math.radians(1) * multiplier
                 self.cmd.publish(self.twist)
                 
@@ -85,8 +81,6 @@ class Robot():
         
     def goto_point(self, px, py, pz):
         completed = False
-
-        #twist = Twist()
 
         while not completed:
             if self.pose != None:
@@ -131,7 +125,6 @@ class Robot():
                 if dist > 5:
                     self.twist.linear.x = 1.0   
                     self.cmd.publish(self.twist)
-                #elif dist > 0.10:
                 elif dist > 2.5:
                     self.twist.linear.x = 0.1
                     self.cmd.publish(self.twist)
@@ -143,8 +136,6 @@ class Robot():
                 pass
 
     def control_help(self):
-        #normalde tcp/ip uzerinden port dinlemesi gerekli.
-        #txt kullanımı nedeniyle son hedeften sonra bug olusabiliyor.
         while(True):
             with open('/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/comm.txt') as openfileobject:
                 for line in openfileobject:
@@ -166,13 +157,7 @@ def return_field(x, y):
         return 5
     
 def main(name):
-    #rospy.init_node("odometry_check")
-
-    # subscriber = rospy.Subscriber("/ground_truth/state", Odometry, callback)
-    # rospy.spin()
-    
     rospy.init_node('P3dx2', name)
-    #rospy.init_node('robot_controller')
     robot = Robot(name)
     robot.control_help()
 

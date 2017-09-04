@@ -35,10 +35,8 @@ class Robot():
             orientation.w,
             )
         self.euler = tf.transformations.euler_from_quaternion(self.orient)
-        #print self.euler
         
     def rotate_robot(self, yawangle):
-        #print yawangle
         eu = self.euler[2]
         zero = yawangle - eu
         multiplier = 1.0
@@ -53,14 +51,12 @@ class Robot():
         self.cmd.publish(self.twist)
         while not (eu < (yawangle + math.radians(5)) and  eu > (yawangle - math.radians(5))):
             if (abs(eu - yawangle)) > math.radians(15):
-                #self.twist.angular.z = math.radians(10) * ((eu - yawangle) / abs(eu - yawangle))
                 self.twist.angular.z = math.radians(15) * multiplier
                 self.cmd.publish(self.twist)
             elif abs(eu - yawangle) > math.radians(5):
                 self.twist.angular.z = math.radians(2) * multiplier
                 self.cmd.publish(self.twist)
             else:
-                #self.twist.angular.z = math.radians(1) * ((eu - yawangle) / abs(eu - yawangle))
                 self.twist.angular.z = math.radians(1) * multiplier
                 self.cmd.publish(self.twist)
                 
@@ -91,8 +87,6 @@ class Robot():
             
     def goto_point(self, px, py, pz):
         completed = False
-
-        #twist = Twist()
 
         while not completed:
             if self.pose != None:
@@ -142,8 +136,7 @@ class Robot():
                     self.cmd.publish(self.twist)
                 else:
                     completed = True
-                    #self.stop()
-                
+                                    
                 self.rate.sleep()
             else:
                 pass
@@ -156,7 +149,6 @@ class Robot():
                     if (filestring != None):
                         px, py, pz = filestring.split()
                         self.goto_point(float(px), float(py), float(pz))
-                        #print float(px), float(py), float(pz)
                     fo.close()
                 except:
                     pass
@@ -173,14 +165,8 @@ def return_field(x, y):
     else: 
         return 5
     
-def main(name):
-    #rospy.init_node("odometry_check")
-
-    # subscriber = rospy.Subscriber("/ground_truth/state", Odometry, callback)
-    # rospy.spin()
-    
+def main(name):    
     rospy.init_node('P3dx', name)
-    #rospy.init_node('robot_controller')
     robot = Robot(name)
     robot.control_help()
 
