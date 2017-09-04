@@ -69,6 +69,26 @@ class Robot():
         self.twist.angular.z = 0
         self.cmd.publish(self.twist)
         
+    def rotate_robot_2(self, yawangle):
+        eu = self.euler[2]
+        zero = yawangle - eu
+        multiplier = 1.0
+        if zero > 0:
+            multiplier = 1.0
+            if zero > 3.1:
+                multiplier = -1.0
+        else:
+            multiplier = -1.0
+
+        if (eu < (yawangle + math.radians(5)) and  eu > (yawangle - math.radians(5))):
+            return
+        elif (abs(eu - yawangle)) > math.radians(15):
+            self.twist.angular.z = math.radians(15) * multiplier
+        elif abs(eu - yawangle) > math.radians(5):
+            self.twist.angular.z = math.radians(2) * multiplier
+        else:
+            self.twist.angular.z = math.radians(1) * multiplier
+            
     def goto_point(self, px, py, pz):
         completed = False
 
@@ -90,39 +110,39 @@ class Robot():
                 fy = py - y 
                 
                 field = return_field(fx, fy)
-                
+
                 if (field == 1):
                     yawangle = math.asin(fy/dist)
-                    self.rotate_robot(yawangle)
+                    self.rotate_robot_2(yawangle)
                     
                 elif (field == 2):
                     yawangle = math.radians(180) - math.asin(fy/dist)
-                    self.rotate_robot(yawangle)
+                    self.rotate_robot_2(yawangle)
 
                 elif (field == 3):
                     yawangle = math.radians(180) - math.asin(fy/dist)
                     yawangle *= -1.0
-                    self.rotate_robot(yawangle)
+                    self.rotate_robot_2(yawangle)
 
                 elif (field == 4):
                     yawangle = math.asin(fy/dist)
-                    self.rotate_robot(yawangle)
+                    self.rotate_robot_2(yawangle)
 
                 elif (field == 5):
                     yawangle = math.asin(fy/dist)
                     if yawangle > math.radians(180):
                         yawangle *= -1.0
-                    self.rotate_robot(yawangle)
+                    self.rotate_robot_2(yawangle)
 
                 if dist > 5:
                     self.twist.linear.x = 1.0   
                     self.cmd.publish(self.twist)
-                elif dist > 0.10:
+                elif dist > 0.20:
                     self.twist.linear.x = 0.1
                     self.cmd.publish(self.twist)
                 else:
                     completed = True
-                    self.stop()
+                    #self.stop()
                 
                 self.rate.sleep()
             else:
@@ -131,7 +151,7 @@ class Robot():
     def control_help(self):
             while(True):
                 try:
-                    fo = open("/home/berkan/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/goto_points.txt", "r")
+                    fo = open("/home/yigit/catkin_ws/src/quadro_demo/src/swarm-robotics/communication/goto_points.txt", "r")
                     filestring = fo.readline()
                     if (filestring != None):
                         px, py, pz = filestring.split()

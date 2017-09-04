@@ -4,7 +4,7 @@
 		<include file="$(find gazebo_plugins)/test/multi_robot_scenario/launch/pioneer3dx.gazebo.launch">
 			<arg name="robot_name" value="p3dx" />
 			<param name="tf_prefix" value="p3dx"/>
-			<arg name="robot_position" value="-x 2.0 -y -32.5 -z 0.189 -R 0 -P 0 -Y +2.5" />
+			<arg name="robot_position" value="-x -13.0 -y -25.0 -z 0.189 -R 0 -P 0 -Y +2.5" />
 		</include>
 	</group>
 
@@ -13,7 +13,7 @@
 		<include file="$(find quadro_demo)/src/swarm-robotics/multi_robot_scenario/launch/pioneer3dx.gazebo.launch">
 			<arg name="robot_name" value="p3dx2" />
 			<param name="tf_prefix" value="p3dx2"/>
-			<arg name="robot_position" value="-x 5.0 -y -32.5 -z 0.189 -R 0 -P 0 -Y +2.5" />
+			<arg name="robot_position" value="-x -45.0 -y 0.0 -z 0.189 -R 0 -P 0 -Y +2.5" />
 		</include>
 	</group>
 	<node pkg="tf" type="static_transform_publisher" name="base_to_odom_p3dx"
