@@ -1,0 +1,5 @@
+<launch>
+	<node name="task" pkg="beginner_tutorials" type="task" />
+	<include file="$(find hector_quadrotor_demo)/launch/outdoor_flight_gazebo.launch"></include> 
+		<node name="task2" pkg="beginner_tutorials" type="task2.py" />
+</launch>

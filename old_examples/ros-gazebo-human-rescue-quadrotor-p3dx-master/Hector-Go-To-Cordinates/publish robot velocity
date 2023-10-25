@@ -1,0 +1,32 @@
+rostopic pub /cmd_vel geometry_msgs/Twist "linear:
+  x: 4.0
+  y: 4.0
+  z: 4.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0" 
+
+
+#!/usr/bin/env python
+import roslib
+import rospy
+
+from geometry_msgs.msg import Twist
+
+def start():
+	pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+	# starts the node
+	rospy.init_node('Hector')
+	rate = rospy.Rate(10)
+	twist = Twist()
+	number = 1.0
+	while not rospy.is_shutdown():
+		twist.linear.x = 0.0; twist.linear.y = 0.0; twist.linear.z = 4.0-number;
+		twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = 0.0;
+		pub.publish(twist)
+		number = (-1.0)*number;
+		rate.sleep()
+
+if __name__ == '__main__':
+	start()
